@@ -44,8 +44,6 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %files -f %{name}-%{version}-%{release}-filelist 
-%config /etc/backup-config.d/custom.include
-%config /etc/backup-config.d/custom.exclude
 %defattr(-,root,root)
 
 %changelog
