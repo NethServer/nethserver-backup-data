@@ -23,7 +23,7 @@
 use strict;
 use Errno;
 use esmith::ConfigDB;
-use NethServer::BackupData();
+use NethServer::BackupData;
 
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
@@ -35,8 +35,9 @@ my $err = 0;
 
 exit 0 unless ($VFSType eq 'cifs');
 
-# check if backp directory is mounted
+my $b = new NethServer::BackupData();
 
+# check if backp directory is mounted and umount
 if ($b->is_mounted("\/$smbhost(.*)\/$smbshare") or $b->is_mounted($mntdir)) {
     system("/bin/umount", "$mntdir");
 }
