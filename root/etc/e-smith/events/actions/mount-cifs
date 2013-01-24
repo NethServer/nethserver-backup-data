@@ -1,0 +1,88 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+#
+# Original work:
+# copyright (C) 2006-2007 Jean-Paul Leclere <jean-paul@leclere.org>
+# copyright (C) 2007 Charlie Brady <charlieb@e-smith.com>
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use Errno;
+use File::Temp;
+use esmith::ConfigDB;
+use NethServer::BackupData();
+
+sub ldie;
+
+my $confdb = esmith::ConfigDB->open;
+my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+my $status =  $backupwk->prop('status') || 'disabled';
+
+exit 0 unless ($status eq 'enabled');
+
+my $smbhost = $backupwk->prop('SmbHost');
+my $smbshare = $backupwk->prop('SmbShare');
+my $login = $backupwk->prop('Login');
+my $password = $backupwk->prop('Password');
+my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
+our $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+my $err = 0;
+my $mntdone = 0;
+
+exit 0 unless ($VFSType eq 'cifs');
+
+our $b = new NethServer::BackupData();
+
+# creating credentials file
+my $tmp = File::Temp->new(UNLINK => 1);
+chmod(0600,$tmp->filename);
+print $tmp "user=$login\n";
+print $tmp "password=$password\n";
+
+# mounting backup directory
+# verify backup directory not already mounted
+
+if ($b->is_mounted("\/$smbhost(.*)\/$smbshare") or $b->is_mounted($mntdir)) {
+    ldie("Backup directory is already mounted");
+}
+
+# mount the backup dir
+$err = qx(/bin/mount -t cifs "$smbhost:$smbshare" $mntdir -o credentials=$tmp,nounix 2>&1);
+if ($err) {
+    $err =~s/\n/ /g;
+    ldie("Error while mounting $smbhost:$smbshare : " . $err); 
+}
+
+$mntdone = 1;
+
+# verify $mntdir has an entry in /proc/mounts
+
+if (!$b->is_mounted($mntdir)) {
+    ldie("Backup directory is not mounted");
+}
+
+sub ldie 
+{
+    my $errmsg = shift;
+    system("/bin/umount", "$mntdir") if $mntdone;
+    $b->bad_exit($errmsg);
+}
+

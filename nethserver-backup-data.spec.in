@@ -1,0 +1,50 @@
+Summary: NethServer backup data and config files
+Name: nethserver-backup-data
+Version: @@VERSION@@
+Release: @@RELEASE@@
+License: GPL
+Group: System
+Source: %{name}-%{version}.tar.gz
+BuildArch: noarch
+BuildRequires: nethserver-devtools
+Requires: nethserver-backup-config
+AutoReq: no
+
+
+%description
+NethServer backup of config and data files
+
+
+%preun
+
+%post
+source /etc/nethserver/rpm_hook_functions
+event_queue add %{name}-update
+
+%prep
+%setup
+
+%build
+perl createlinks
+
+# relocate perl modules under default perl vendorlib directory:
+mkdir -p root%{perl_vendorlib}
+mv -v NethServer root%{perl_vendorlib}
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+(cd root ; find . -depth -print | cpio -dump $RPM_BUILD_ROOT)
+rm -f %{name}-%{version}-%{release}-filelist
+/sbin/e-smith/genfilelist $RPM_BUILD_ROOT > %{name}-%{version}-%{release}-filelist
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+
+%files -f %{name}-%{version}-%{release}-filelist 
+%config /etc/backup-config.d/custom.include
+%config /etc/backup-config.d/custom.exclude
+%defattr(-,root,root)
+
+%changelog
