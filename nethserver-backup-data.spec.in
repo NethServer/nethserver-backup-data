@@ -7,7 +7,7 @@ Group: System
 Source: %{name}-%{version}.tar.gz
 BuildArch: noarch
 BuildRequires: nethserver-devtools
-Requires: cifs-utils, nfs-utils
+Requires: cifs-utils, nfs-utils, duplicity
 Requires: nethserver-backup-config
 AutoReq: no
 
