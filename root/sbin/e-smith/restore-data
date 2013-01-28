@@ -24,10 +24,11 @@ use esmith::ConfigDB;
 use NethServer::BackupConfig;
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
+my $backup = $conf->get('backup-data');
 my $program = $backup->prop('Program') || 'duplicity';
 my $status;
 
-my $backup = new NethServer::BackupConfig();
+$backup = new NethServer::BackupConfig();
 $backup->{_log_file} = "/var/log/restore-data.log";
 
 if ($status = system(qw(signal-event pre-restore-data)))
