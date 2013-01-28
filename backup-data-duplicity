@@ -1,0 +1,526 @@
+#!/usr/bin/perl -w
+
+#----------------------------------------------------------------------
+# copyright (C) 2006-2007 Jean-Paul Leclere <jean-paul@leclere.org>
+# copyright (C) 2007 Charlie Brady <charlieb@e-smith.com>
+# 		
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 		
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 		
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+# 
+#----------------------------------------------------------------------
+
+use strict;
+use Errno;
+use esmith::util;
+use esmith::templates;
+use Time::localtime;
+use File::Copy;
+use File::Path;
+use File::Find;
+use POSIX ":sys_wait_h";
+use esmith::ConfigDB;
+
+sub ldie;
+sub start_dar_killer;
+sub run_backup;
+
+my $job = shift || 'DailyBackup';
+my $report;
+
+my $confdb = esmith::ConfigDB->open;
+my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+
+my $tm = localtime(time);
+my $bkname = $tm->year+1900;
+
+$bkname .= "0" if ($tm->mon < 9);
+$bkname .= $tm->mon + 1;
+
+$bkname .= "0" if ($tm->mday < 10);
+$bkname .= $tm->mday;
+
+$bkname .= "0" if ($tm->hour < 10);
+$bkname .= $tm->hour;
+
+$bkname .= "0" if ($tm->min < 10);
+$bkname .= $tm->min;
+
+my $dow = $tm->wday;
+my $id = $backupwk->prop('Id') ||
+    $confdb->get('SystemName')->value . "." . $confdb->get('DomainName')->value;
+my $err;
+my $ref = "";
+my $mntdone = 0;
+my $tim = ctime();
+
+my $smbhost = $backupwk->prop('SmbHost');
+my $smbshare = $backupwk->prop('SmbShare');
+my $login = $backupwk->prop('Login');
+my $password = $backupwk->prop('Password');
+my $setsmax = $backupwk->prop('SetsMax') || 1;
+my $daysinset = $backupwk->prop('DaysInSet') || 1;
+my $setnum = $backupwk->prop('SetNum'); $setnum = ($setsmax-1) unless defined $setnum;
+my $incnum = $backupwk->prop('IncNum'); $incnum = ($daysinset-1) unless defined $incnum;
+my $timeout = (($backupwk->prop('Timeout') * 3600) - 30)  || '88500';
+my $inconly = $backupwk->prop('IncOnlyTimeout') || 'no';
+my $VFSType = $backupwk->prop('VFSType') || 'cifs';
+my $fullday = $backupwk->prop('FullDay') || 7;
+my $mail = $backupwk->prop('MailNotify') || 'yes';
+my $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+my $frommail = $backupwk->prop('FromMail') || 'admin-backup';
+my $tomail = $backupwk->prop('ToMail') || 'admin';
+my $tmpdir;
+
+$report .= "From: ".$frommail."\n";
+$report .= "To: $tomail\n";
+$report .= "Subject: Daily Backup Report: ".$id."\n\n";
+$report .= "================================== \n";
+$report .= "DAILY BACKUP TO WORKSTATION REPORT \n";
+$report .= "================================== \n";
+$report .= "Backup of ".$id." started at " .$tim . "\n";
+$report .= "Backup of mysql databases has been done\n";
+
+# mounting backup directory
+
+$report .= "Mounting backup shared directory $smbhost/$smbshare \n";
+
+# verify backup directory not already mounted
+
+open FD, '/proc/mounts';
+if ( $VFSType ne 'usb' )
+{
+    while (<FD>)
+    {
+    next unless /\s\/$smbhost(.*)\/$smbshare\s/;
+    next unless /\s\/$mntdir\s/;
+    $err++
+    }
+}
+else 
+{
+    while (<FD>) 
+    {
+    next unless /\s\/$smbshare\s/;
+    $err++;
+    }
+}
+close FD;
+if ($err)
+{
+    ldie("Seems backup directory is already mounted. " .
+        "It should not happen and maybe there is a zombie process " .
+	"you must kill, or another backup in progress. \n");
+}
+
+# mount the backup dir
+
+if ($VFSType eq 'cifs')
+{
+    $err = qx(/bin/mount -t cifs "$smbhost:$smbshare" $mntdir -o credentials=/etc/dar/CIFScredentials,nounix 2>&1);
+    ldie("Error while mounting $smbhost:$smbshare : \n" . $err) if $err; 
+}
+elsif ($VFSType eq 'nfs')
+{
+    $err = qx(/bin/mount -t nfs -o nolock "$smbhost:/$smbshare" $mntdir 2>&1);
+    ldie("Error while mounting $smbhost:/$smbshare : \n" . $err) if $err; 
+}
+elsif ($VFSType eq 'usb')
+{
+    my $device = "";
+    my $blkdev = "";
+    my $vollbl = "";
+    foreach my $udi (qx(hal-find-by-property --key volume.fsusage --string filesystem)) {
+        $udi =~ m/^(\S+)/;
+        my $is_mounted = qx(hal-get-property --udi $1 --key volume.is_mounted);
+
+        if ($is_mounted eq "false\n") {
+            $blkdev = qx(hal-get-property --udi $1 --key block.device);
+            $blkdev =~ m/^(\S+)/;
+        }
+        if ($is_mounted eq "false\n") {
+            $vollbl = qx(hal-get-property --udi $1 --key volume.label);
+            $vollbl =~ m/^(\S+)/;
+            if ($vollbl =~ /^\s/) {$vollbl = 'nolabel';}
+        }
+
+        chomp $vollbl;
+        chomp $blkdev;
+        $vollbl = "media/$vollbl";
+        if  ($vollbl eq $smbshare) {
+          $device = $blkdev;
+        } 
+    }
+
+    system("/bin/mkdir -p /$smbshare");
+
+    $err = qx(/bin/mount $device "/$smbshare" 2>&1);
+    if ($err) {ldie("Error while mounting $device /$smbshare : \n" . $err)};
+    $mntdir = "/$smbshare";
+}
+else
+{
+    ldie("Error while mounting $smbhost/$smbshare : $VFSType not supported.\n");
+}
+$mntdone = 1;
+
+# verify $mntdir has an entry in /proc/mounts
+
+$err = 0;
+open FD, '/proc/mounts';
+while (<FD>)
+{
+    next unless /\s$mntdir\s/;
+    $err++;
+}
+close FD;
+if ($err == 0)
+{
+    ldie("Seems backup directory is not really mounted. It should not happen. \
+    Verify availability of your backup volume. Stopping the backup now.\n")
+}
+
+$tmpdir = $mntdir . '/tmp_dir';
+if (-d "$tmpdir/$id")
+{
+    eval {rmtree("$tmpdir/$id")};
+    ldie("Error while deleting $tmpdir/$id : $@.\n") if $@;
+}
+eval {mkpath("$tmpdir/$id")};
+ldie("Error while creating $tmpdir/$id : $@. Maybe insufficient rights on backup directory.\n")
+    if $@;
+
+# we know right backup directory is in line and we can write on it.
+$report .= "Backup temp directory $tmpdir/$id is mounted and is writable \n";
+
+# rotating backup indicators
+
+++$incnum;
+$incnum = 0 if ($dow == $fullday && $incnum > $daysinset-7) || 
+               ($fullday == 7 && $incnum >= $daysinset);
+if ($incnum == 0)
+{
+    ++$setnum;
+    $setnum %= $setsmax;
+}
+
+$report .= sprintf("Using set number %d of %d\n", $setnum + 1, $setsmax);
+if ($incnum == 0)
+{
+	$report .= "Attempt full backup \n";
+}
+else
+{
+	$report .= sprintf("Attempt incremental backup number %d of %d\n", $incnum, $daysinset - 1);
+}
+
+# if no set directory, make it
+my $setname = "set" . $setnum;
+my $setdirname = $mntdir . "/$id/" . $setname;
+
+unless ( -d $setdirname )
+{
+    eval {mkpath($setdirname)};
+    ldie("Can't create $setdirname : $@.\n") if $@;
+    $report .= "Backup directory $id/$setname created \n";
+}
+    
+if ( $incnum == 0 )
+{
+    $bkname = "full-" . $bkname;
+}
+else
+{
+    # if $incnum <> 0 backup should be incremental
+    # we find correct reference backup for incremental
+    my $file;
+    opendir(DIR, $setdirname) or ldie("Can't open dir $setdirname $!");
+    while (defined($file = readdir(DIR)))
+    {
+	next if $file =~ /^\.\.?$/;
+	if ($file =~ /dar$/)
+	{
+	     $ref = $file;
+	}
+    }
+    closedir (DIR);
+    # if no reference do full backup
+    if ($ref eq "")
+    {
+	$incnum = 0;
+	$report .= "No existing reference backup, will make full backup \n";
+	$bkname = "full-" . $bkname;
+    }
+    else
+    {
+	# removing .dar extension
+	$ref =~ s/\..*\.dar$//;
+	$ref = "--ref " . $setdirname . "/" . $ref;
+	$bkname = "inc-" . sprintf("%03d", $incnum) . "-". $bkname;
+    }
+}
+
+unless ( ( $incnum != 0 ) || ( $fullday == 7 ) || ( $dow == $fullday ) )
+{
+    my $delay = ($fullday - $dow) % 7;
+    ldie("Not a permitted day for full backup. Aborting...\nNext full backup in $delay days.\n");
+}
+
+$report .= "Backup base file name is $bkname \n";
+$report .= "Making backup in temp directory\n";
+
+# calculate real timeout if we timeout incrementals only.
+# timeout of 88500 is a security for aborting backup within 24h
+
+if ( ($ref eq "") && ($inconly eq "yes"))
+{
+    $timeout = 88500;
+}
+$report .= "Using a backup session timeout of : $timeout seconds\n";
+
+# expanding backup configuration file template
+
+processTemplate({
+        TEMPLATE_PATH => "/etc/dar/$job.dcf",
+    });
+
+# launching dar backup
+
+my $rc = run_backup();
+if ($rc != 0 && $rc != 11)
+{
+	ldie("Error while running dar: $rc");
+}
+
+if ($incnum == 0)
+{
+    $report .= "Rotating backups in a new set $setdirname. \n";
+    eval {rmtree($setdirname)};
+    ldie("Error while deleting $setdirname : $@.\n") if $@;
+    eval {mkpath("$setdirname")};
+    ldie("Error while creating $setdirname : $@.\n") if $@;
+}
+
+$report .= "Moving backup files to target directory $setdirname \n"; 
+
+foreach (<$tmpdir/$id/$bkname*>)
+{
+    ldie("Error while moving backup file $_ from temporary dir $tmpdir/$id to $setdirname : $!")
+	unless move($_, $setdirname);
+}
+
+# update dar_manager catalog
+
+$report .= "Updating catalog\n"; 
+
+my %backupfiles = ();
+my $mntbkdir;
+my $mounted;
+my $key;
+
+my $setbackuplist = sub {
+    if ( $_ =~ /\.dar/ )
+    {
+        my $dir = $File::Find::dir;
+        my $backupref;
+        $dir =~ s/$mntbkdir\///;
+        $_ =~ s/\..*\.dar//;
+        $backupref = $_;
+        $_ =~ s/.*-//;
+        @{$backupfiles{$_}}[0] = $dir;
+        @{$backupfiles{$_}}[1] =  $backupref;
+    }
+};
+
+$mntbkdir = $mntdir . '/' . $id;
+
+my $catalog = "$mntbkdir/dar-catalog";
+unless ( -e $catalog) 
+{ 
+	system("/usr/bin/dar_manager", "-Q", "-C", "$catalog") == 0
+	    or ldie("Unable to create dar_manager catalog.\n");
+}
+
+# wait for device
+sleep(1);
+
+# find available backups for the server
+
+find { wanted => \&$setbackuplist, untaint => 1 }, $mntbkdir ;
+
+# find backups in current catalog    
+
+my $i = 0;
+my @bknum;
+my @setd;
+my @bkname;
+open(DAR_LIST, "/usr/bin/dar_manager -Q -B $catalog -l |");
+while (<DAR_LIST>)
+{
+	next unless ($_ =~ /set/);
+	chomp;
+	($bknum[$i], $setd[$i], $bkname[$i]) = split(' ', $_, 3);
+	$i++;
+}
+close (DAR_LIST);
+
+# delete from catalog old removed backups
+
+my $j = $i;
+while ($j)
+{
+	unless (-e "$setd[$j-1]/$bkname[$j-1]\.1\.dar")
+	{
+	    my $del = $bknum[$j-1];
+	    if ($del =~ /^(.*)$/)
+	    {
+		$del = $1;
+	    }
+	    system("/usr/bin/dar_manager", "-Q", "-B", "$catalog", "-D", "$del") == 0
+		or ldie("Failed to delete set $del from catalog.\n");
+	}
+	$j--;
+}
+
+# add to catalog new backups
+
+foreach $key (sort keys %backupfiles)
+{
+	my $exists = 0;
+	my $rf;
+	foreach $rf (@bkname)
+	{
+	    $exists = 1 if ($rf eq $backupfiles{$key}[1]);
+	    last if $exists;
+	}
+        do
+	{
+	    my $add = "$mntbkdir/$backupfiles{$key}[0]/$backupfiles{$key}[1]";
+	    if ($add =~ /^(.*)$/)
+	    {
+		$add = $1;
+	    }
+	    system("/usr/bin/dar_manager", "-Q", "-B", "$catalog", "-A", "$add") == 0
+		or ldie("Failed to add set $add to catalog.\n"); 
+	} unless $exists;
+}
+
+# Check free disk space
+my $df = qx(/bin/df -Ph $mntdir);
+if ($df =~ /^\S+\s+(\S+)\s+(\S+)\s+(\S+)\s+(\d*%)/mi)
+{
+	$report .= "Disk usage $2, $4 full, $3 available\n";
+}
+else
+{
+	$report .= "Disk space not available\n";
+}
+
+# unmount shared folder
+system("/bin/umount", "-f", "$mntdir");
+
+# time now to update backup configuration
+
+$report .= "Updating backup configuration data \n";
+$backupwk->set_prop('SetNum', $setnum);
+$backupwk->set_prop('IncNum', $incnum);
+
+$tim = ctime();
+$report .= "Backup successfully terminated at : $tim \n";
+
+if ($mail eq 'yes')
+{
+    open (MAIL, "|/var/qmail/bin/qmail-inject")
+        || die "Cannot start mail program: $!\n";
+    print MAIL $report;
+    close(MAIL);
+}
+
+exit (0);
+
+sub ldie 
+{
+    my $errmsg = shift;
+    $report =~ s/Report:/Failed:/;
+    $report .= "*** No backup allowed or error during backup ***\n";
+    $report .= $errmsg;
+    if (($mail eq 'yes') || ($mail eq 'error'))
+    {
+	open (MAIL, "|/var/qmail/bin/qmail-inject")
+	    || die "Cannot start mail program: $!: message was $errmsg\n";
+	print MAIL $report;
+	close(MAIL);
+    }
+    system("/bin/umount", "$mntdir") if $mntdone;
+    die($errmsg);
+}
+
+sub start_dar_killer
+{
+    my ($darpid, $gracetime) = @_;
+	my $tick = $gracetime/10;
+	
+    my $killer = fork;
+    return $killer if $killer;
+
+     POSIX::setsid;
+     chdir '/';
+     #fork && exit;
+
+     # wait for timeout or backup termination
+	 while ($tick > 0) {
+		sleep 10;
+		$tick--;
+		exit unless (kill(0, $darpid));
+	}
+
+	if (kill(0, $darpid)) {
+		while (kill('QUIT', $darpid) != 1) {
+			warn "Failed to stop $darpid dar process\n";
+		}
+	}
+	warn "Partial backup stored on backup workstation.\n", 
+		"Session cleanly closed by timeout after $timeout seconds.\n",
+		"Not an error, backup process will continue next night.\n";
+
+	exit;
+}
+
+sub run_backup
+{
+    my $data = undef;
+    my $pid = undef;
+    my $killerpid = undef;
+
+    eval {
+         		($pid = open INPUT, "-|", "/usr/bin/dar", "-Q", "--create", "$tmpdir/$id/$bkname", split(/\s+/,$ref),  "-B", "/etc/dar/$job.dcf") or ldie("cannot start : $!" );
+
+         if ($pid) {
+            $killerpid = start_dar_killer($pid, $timeout);         }
+			$data = do { local($/); <INPUT> };
+    };
+	$report .= $data;
+
+    if ($killerpid && kill(0, $killerpid)) {
+         while (kill('TERM', $killerpid) != 1) {
+             warn "Failed to kill $killerpid killer process\n";
+         }
+
+         waitpid($killerpid, 0);
+     }
+
+	waitpid($pid, 0);
+	my $code = WEXITSTATUS($?);
+	close(INPUT);
+	return $code;
+}
