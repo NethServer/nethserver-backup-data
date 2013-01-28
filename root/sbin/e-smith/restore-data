@@ -31,19 +31,25 @@ my $status;
 $backup = new NethServer::BackupConfig();
 $backup->{_log_file} = "/var/log/restore-data.log";
 
+$backup->logger("START","Restore data started");
+
 if ($status = system(qw(signal-event pre-restore-data)))
 {
     $backup->bad_exit("Event pre-restore-data failed", $status);
 }
+$backup->logger("STEP","pre-restore-data done");
 
 if ($status = system("/etc/e-smith/events/actions/restore-data-$program"))
 {
     $backup->bad_exit("Action restore-data-$program failed", $status);
 }
+$backup->logger("STEP","restore-data-$program done");
 
 if ($status = system(qw(signal-event post-restore-data)))
 {
     $backup->bad_exit("Event post-restore-data failed", $status);
 }
+
+$backup->logger("SUCCESS","Restore data done");
 
 exit 0;
