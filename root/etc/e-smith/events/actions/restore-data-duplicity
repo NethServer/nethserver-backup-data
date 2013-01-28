@@ -1,0 +1,92 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::ConfigDB;
+use File::Temp;
+use Time::localtime;
+use NethServer::BackupData;
+use NethServer::BackupConfig;
+
+use constant CMD => '/usr/bin/duplicity';
+
+my $position = shift || 'origin';
+my $files = @_ || undef;
+
+my $confdb = esmith::ConfigDB->open;
+my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+
+my $tm = localtime(time);
+my $dow = $tm->wday;
+
+my $type = $backupwk->prop('Type') || 'full';
+my $forceFull = $backupwk->prop('ForceFull') || 'enabled';
+my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
+my $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+my $logFile = '/var/log/restore.log';
+my $opts = '';
+my $dst = "";
+
+our $backup = new NethServer::BackupData();
+
+
+# Create globbing file list
+my $tmp = File::Temp->new(UNLINK => 1);
+chmod(0600,$tmp->filename);
+
+$backup->uniq(\@include_data_files);
+$backup->uniq(\@exclude_data_files);
+
+foreach  (@include_data_files) {
+   print $tmp "+ $_\n";
+}
+foreach  (@exclude_data_files) {
+   print $tmp "- $_\n";
+}
+print $tmp "- **\n";
+
+$opts .= "--include-globbing-filelist $tmp";
+
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+   $dst = " file://$mntdir ";
+} else {
+   $backup->bad_exit("No valid VFSType ($VFSType)",1);
+}
+
+# disable encryption
+$opts .= " --no-encryption ";
+# set duplicity cache dir
+$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
+# add log file
+if ( -e $logFile) {
+   unlink($logFile);
+}
+my $ret = system(CMD." $opts / $dst &>$logFile");
+
+if ($ret == 0) {
+   $backup->logger("SUCCESS","Backup done - 0");
+} else {
+   $backup->bad_exit("Backup failed, see $logFile for details",$ret); 
+}
+
+exit (0);
+
