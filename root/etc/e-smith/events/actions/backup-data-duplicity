@@ -102,6 +102,8 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
 
 # disable encryption
 $opts .= " --no-encryption ";
+# set duplicity cache dir
+$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
 # add log file
 if ( -e $logFile) {
    unlink($logFile);
