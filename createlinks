@@ -44,4 +44,28 @@ $event = "nethserver-backup-data-save";
 
 $event = "nethserver-backup-data-uninstall";
 
+
+#--------------------------------------------------
+# actions for pre-backup-data event
+#--------------------------------------------------
+
+$event = "pre-backup-data";
+event_actions($event, 
+   'mount-usb' => '10'
+   'mount-cifs' => '10'
+   'mount-nfs' => '10'
+);
+
+#--------------------------------------------------
+# actions for post-backup-data event
+#--------------------------------------------------
+
+$event = "post-backup-data";
+event_actions($event, 
+   'umount-usb' => '90'
+   'umount-cifs' => '90'
+   'umount-nfs' => '90'
+);
+
+
 exit;
