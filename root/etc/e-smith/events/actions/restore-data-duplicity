@@ -83,9 +83,7 @@ if (@files) {  # restore selected files
    $ret = system("$cmd &>$logFile");
 }
 
-if ($ret == 0) {
-   $backup->logger("SUCCESS","Restore done - 0");
-} else {
+if ($ret != 0) {
    $backup->bad_exit("Restore failed, see $logFile for details",$ret); 
 }
 

@@ -110,9 +110,7 @@ if ( -e $logFile) {
 }
 my $ret = system(CMD." $opts / $dst &>$logFile");
 
-if ($ret == 0) {
-   $backup->logger("SUCCESS","Backup done - 0");
-} else {
+if ($ret != 0) {
    $backup->bad_exit("Backup failed, see $logFile for details",$ret); 
 }
 
