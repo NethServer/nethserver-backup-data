@@ -32,21 +32,25 @@ my $program = $backup->prop('Program') || 'duplicity';
 exit 0 unless ($status eq 'enabled');
 
 $backup = new NethServer::BackupData();
-
+$backup->logger("START","Backup data started");
 
 if ($status = system(qw(signal-event pre-backup-data)))
 {
     $backup->bad_exit("Event pre-backup-data failed", $status);
 }
+$backup->logger("STEP","pre-backup-done done");
 
 if ($status = system("/etc/e-smith/events/actions/backup-data-$program"))
 {
     $backup->bad_exit("Action backup-data-$program failed", $status);
 }
+$backup->logger("STEP","backup-data-$programe done");
 
 if ($status = system(qw(signal-event post-backup-data)))
 {
     $backup->bad_exit("Event post-backup-data failed", $status);
 }
+
+$backup->logger("SUCCESS","Backup done");
 
 exit 0;
