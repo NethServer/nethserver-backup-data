@@ -22,52 +22,32 @@
 
 use strict;
 use esmith::ConfigDB;
-use File::Temp;
-use Time::localtime;
 use NethServer::BackupData;
 use NethServer::BackupConfig;
 
 use constant CMD => '/usr/bin/duplicity';
 
-my $position = shift || 'origin';
-my $files = @_ || undef;
+my $position = shift @ARGV || '/';
+my @files = @ARGV;
 
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 
-my $tm = localtime(time);
-my $dow = $tm->wday;
 
 my $type = $backupwk->prop('Type') || 'full';
 my $forceFull = $backupwk->prop('ForceFull') || 'enabled';
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
-my $logFile = '/var/log/restore.log';
+my $logFile = '/var/log/restore.log'; # duplicity output
 my $opts = '';
-my $dst = "";
+my $src = "";
 
 our $backup = new NethServer::BackupData();
+$backup->{_log_file} = '/var/log/restore-data.log';
 
-
-# Create globbing file list
-my $tmp = File::Temp->new(UNLINK => 1);
-chmod(0600,$tmp->filename);
-
-$backup->uniq(\@include_data_files);
-$backup->uniq(\@exclude_data_files);
-
-foreach  (@include_data_files) {
-   print $tmp "+ $_\n";
-}
-foreach  (@exclude_data_files) {
-   print $tmp "- $_\n";
-}
-print $tmp "- **\n";
-
-$opts .= "--include-globbing-filelist $tmp";
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
-   $dst = " file://$mntdir ";
+   $src = " file://$mntdir ";
 } else {
    $backup->bad_exit("No valid VFSType ($VFSType)",1);
 }
@@ -80,12 +60,32 @@ $opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
 if ( -e $logFile) {
    unlink($logFile);
 }
-my $ret = system(CMD." $opts / $dst &>$logFile");
+
+my $cmd = CMD." restore ";
+
+if (@files) {  # restore selected files
+    foreach (@files) {
+        if ($position eq "/") {
+            $opts .= " --force ";
+            $cmd .= " $opts --file-to-restore $_ $src /$_";
+        } else {
+            $cmd .= " $opts --file-to-restore $_ $src $position/$_";
+        }
+    } 
+} else { # restore all
+   $opts .= " --force ";
+   if ($position eq "/") {
+       $cmd .= " $opts $src /";
+   } else {
+       $cmd .= " $opts $src $position/";
+   }
+}
+my $ret = system("$cmd &>$logFile");
 
 if ($ret == 0) {
-   $backup->logger("SUCCESS","Backup done - 0");
+   $backup->logger("SUCCESS","Restore done - 0");
 } else {
-   $backup->bad_exit("Backup failed, see $logFile for details",$ret); 
+   $backup->bad_exit("Restore failed, see $logFile for details",$ret); 
 }
 
 exit (0);
