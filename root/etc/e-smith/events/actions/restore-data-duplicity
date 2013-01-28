@@ -61,26 +61,29 @@ if ( -e $logFile) {
    unlink($logFile);
 }
 
-my $cmd = CMD." restore ";
+my $ret;
+my $cmd = CMD." restore $opts ";
 
 if (@files) {  # restore selected files
     foreach (@files) {
+        $cmd = CMD." restore $opts ";
         if ($position eq "/") {
-            $opts .= " --force ";
-            $cmd .= " $opts --file-to-restore $_ $src /$_";
+            $cmd .= " --force --file-to-restore $_ $src /$_";
         } else {
-            $cmd .= " $opts --file-to-restore $_ $src $position/$_";
+            $cmd .= " --file-to-restore $_ $src $position/$_";
         }
+        print "$cmd\n";
+        $ret += system("$cmd &>>$logFile");
     } 
 } else { # restore all
-   $opts .= " --force ";
    if ($position eq "/") {
-       $cmd .= " $opts $src /";
+       $cmd .= " --force $src /";
    } else {
-       $cmd .= " $opts $src $position/";
+       $cmd .= " $src $position/";
    }
+        print "$cmd\n";
+   $ret = system("$cmd &>$logFile");
 }
-my $ret = system("$cmd &>$logFile");
 
 if ($ret == 0) {
    $backup->logger("SUCCESS","Restore done - 0");
