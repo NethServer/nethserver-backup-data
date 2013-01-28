@@ -29,7 +29,7 @@ my $program = $backup->prop('Program') || 'duplicity';
 my $status;
 
 $backup = new NethServer::BackupConfig();
-$backup->{_log_file} = "/var/log/restore-data.log";
+$backup->set_log_file("/var/log/restore-data.log");
 
 $backup->logger("START","Restore data started");
 

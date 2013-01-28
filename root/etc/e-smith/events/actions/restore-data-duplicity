@@ -43,7 +43,7 @@ my $opts = '';
 my $src = "";
 
 my $backup = new NethServer::BackupData();
-$backup->{_log_file} = '/var/log/restore-data.log';
+$backup->set_log_file('/var/log/restore-data.log');
 
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
