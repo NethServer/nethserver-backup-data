@@ -68,4 +68,26 @@ event_actions($event,
 );
 
 
+#--------------------------------------------------
+# actions for pre-restore-data event
+#--------------------------------------------------
+
+$event = "pre-restore-data";
+event_actions($event, 
+   'mount-usb' => '10',
+   'mount-cifs' => '10',
+   'mount-nfs' => '10',
+);
+
+#--------------------------------------------------
+# actions for post-restore-data event
+#--------------------------------------------------
+
+$event = "post-restore-data";
+event_actions($event, 
+   'umount-usb' => '90',
+   'umount-cifs' => '90',
+   'umount-nfs' => '90',
+);
+
 exit;
