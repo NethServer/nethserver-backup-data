@@ -51,9 +51,9 @@ $event = "nethserver-backup-data-uninstall";
 
 $event = "pre-backup-data";
 event_actions($event, 
-   'mount-usb' => '10'
-   'mount-cifs' => '10'
-   'mount-nfs' => '10'
+   'mount-usb' => '10',
+   'mount-cifs' => '10',
+   'mount-nfs' => '10',
 );
 
 #--------------------------------------------------
@@ -62,9 +62,9 @@ event_actions($event,
 
 $event = "post-backup-data";
 event_actions($event, 
-   'umount-usb' => '90'
-   'umount-cifs' => '90'
-   'umount-nfs' => '90'
+   'umount-usb' => '90',
+   'umount-cifs' => '90',
+   'umount-nfs' => '90',
 );
 
 
