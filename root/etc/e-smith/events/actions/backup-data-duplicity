@@ -25,7 +25,6 @@ use esmith::ConfigDB;
 use File::Temp;
 use Time::localtime;
 use NethServer::BackupData;
-use NethServer::BackupConfig;
 
 use constant CMD => '/usr/bin/duplicity';
 
@@ -64,19 +63,13 @@ if ($type eq 'full') {
 
 
 # Read include and exclude from config directory
-my @include_data_files = $backup->includes(NethServer::BackupConfig::CONF_DIR);
-my @exclude_data_files = $backup->excludes(NethServer::BackupConfig::CONF_DIR);
+my @include_data_files = $backup->includes(NethServer::BackupData::CONF_DIR);
+my @exclude_data_files = $backup->excludes(NethServer::BackupData::CONF_DIR);
 
-my @include_config_files = $backup->includes(NethServer::BackupData::CONF_DIR);
-my @exclude_config_files = $backup->excludes(NethServer::BackupData::CONF_DIR);
-
-if (!@include_data_files && !@include_config_files) {
+if (!@include_data_files) {
     $backup->bad_exit("Nothing to backup",256);
 }
 
-# merge arrays
-push(@include_data_files, @include_config_files);
-push(@exclude_data_files, @exclude_config_files);
 # Create globbing file list
 my $tmp = File::Temp->new(UNLINK => 1);
 chmod(0600,$tmp->filename);
