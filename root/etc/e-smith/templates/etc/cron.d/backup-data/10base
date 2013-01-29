@@ -1,0 +1,33 @@
+{
+    $OUT = '';
+
+    # no backup-data variable prefilled because the minus character
+    use esmith::ConfigDB;
+    my $confdb = esmith::ConfigDB->open;
+    my $backup = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+    my $status = $backup->prop('status') || 'enabled';
+
+
+    if ($status eq 'enabled')
+    {
+	# configure backup time and reminder times from the configuration
+	# database
+
+	my $backupMin;
+	my $backupHour;
+
+	my $backupTime = $backup->prop('BackupTime') || "1:00";
+
+	($backupHour, $backupMin) = split (":", $backupTime, -1);
+
+	# remove leading zeros from minutes
+
+	$backupMin =~ s/00/0/;
+
+	$OUT .="$backupMin $backupHour * * * root /sbin/e-smith/backup-data";
+    }
+    else
+    {
+	$OUT .= "# Backup of data is disabled";
+    }
+}

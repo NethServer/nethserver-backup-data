@@ -29,6 +29,7 @@ use esmith::Build::CreateLinks  qw(:all);
 my $event = "nethserver-backup-data-update";
 
 event_actions($event, 'initialize-default-databases' => '00');
+templates2events("/etc/cron.d/backup-data",  $event);
 
 
 #--------------------------------------------------
@@ -36,6 +37,7 @@ event_actions($event, 'initialize-default-databases' => '00');
 #--------------------------------------------------
 
 $event = "nethserver-backup-data-save";
+templates2events("/etc/cron.d/backup-data",  $event);
 
 
 #--------------------------------------------------
@@ -43,7 +45,7 @@ $event = "nethserver-backup-data-save";
 #--------------------------------------------------
 
 $event = "nethserver-backup-data-uninstall";
-
+unlink("/etc/cron.d/backup-data");
 
 #--------------------------------------------------
 # actions for pre-backup-data event
