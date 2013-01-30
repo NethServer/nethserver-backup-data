@@ -25,11 +25,9 @@ use NethServer::BackupData;
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 my $backup = $conf->get('backup-config');
-my $status = $backup->prop('status') || 'disabled';
 my $program = $backup->prop('Program') || 'duplicity';
+my $status;
 
-
-exit 0 unless ($status eq 'enabled');
 
 $backup = new NethServer::BackupData();
 $backup->logger("START","Backup data started");

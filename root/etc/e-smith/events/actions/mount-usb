@@ -33,10 +33,6 @@ sub ldie;
 
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
-my $status =  $backupwk->prop('status') || 'disabled';
-
-exit 0 unless ($status eq 'enabled');
-
 my $usblabel = $backupwk->prop('USBShare');
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
