@@ -38,12 +38,12 @@ my $status =  $backupwk->prop('status') || 'disabled';
 
 exit 0 unless ($status eq 'enabled');
 
-my $smbhost = $backupwk->prop('SmbHost');
-my $smbshare = $backupwk->prop('SmbShare');
-my $login = $backupwk->prop('Login');
-my $password = $backupwk->prop('Password');
+my $smbhost = $backupwk->prop('SMBHost');
+my $smbshare = $backupwk->prop('SMBShare');
+my $login = $backupwk->prop('SMBLogin');
+my $password = $backupwk->prop('SMBPassword');
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-our $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 my $mntdone = 0;
 

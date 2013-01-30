@@ -37,9 +37,9 @@ my $status =  $backupwk->prop('status') || 'disabled';
 
 exit 0 unless ($status eq 'enabled');
 
-my $smbshare = $backupwk->prop('SmbShare');
+my $usblabel = $backupwk->prop('USBShare');
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-our $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 my $mntdone = 0;
 
@@ -48,7 +48,7 @@ exit 0 unless ($VFSType eq 'usb');
 our $b = new NethServer::BackupData();
 
 # get the device name
-my $device = qx( /sbin/blkid -u filesystem -L $smbshare);
+my $device = qx( /sbin/blkid -u filesystem -L $usblabel);
 chomp $device; # remove trailing new line
 
 # verify backup directory not already mounted

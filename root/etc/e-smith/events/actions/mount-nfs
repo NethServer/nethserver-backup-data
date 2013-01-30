@@ -38,10 +38,10 @@ my $status =  $backupwk->prop('status') || 'disabled';
 
 exit 0 unless ($status eq 'enabled');
 
-my $smbhost = $backupwk->prop('SmbHost');
-my $smbshare = $backupwk->prop('SmbShare');
+my $nfshost = $backupwk->prop('NFSHost');
+my $nfsshare = $backupwk->prop('NFSShare');
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-our $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 my $mntdone = 0;
 
@@ -51,15 +51,15 @@ our $b = new NethServer::BackupData();
 
 # verify backup directory not already mounted
 
-if ($b->is_mounted("\/$smbhost(.*)\/$smbshare") or $b->is_mounted($mntdir)) {
+if ($b->is_mounted("\/$nfshost(.*)\/$nfsshare") or $b->is_mounted($mntdir)) {
     ldie("Backup directory is already mounted");
 }
 
 # mount the backup dir
-$err = qx(/bin/mount -t nfs -o nolock "$smbhost:$smbshare" $mntdir 2>&1);
+$err = qx(/bin/mount -t nfs -o nolock "$nfshost:$nfsshare" $mntdir 2>&1);
 if ($err) {
     $err =~s/\n/ /g;
-    ldie("Error while mounting $smbhost:$smbshare : " . $err); 
+    ldie("Error while mounting $nfshost:$nfsshare : " . $err); 
 }
 
 $mntdone = 1;

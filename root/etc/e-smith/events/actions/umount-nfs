@@ -28,9 +28,9 @@ use NethServer::BackupData;
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-my $smbhost = $backupwk->prop('SmbHost');
-my $smbshare = $backupwk->prop('SmbShare');
-my $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+my $nfshost = $backupwk->prop('NFSHost');
+my $nfsshare = $backupwk->prop('NFSShare');
+my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 
 exit 0 unless ($VFSType eq 'nfs');
@@ -39,7 +39,7 @@ my $b = new NethServer::BackupData();
 
 
 # check if backp directory is mounted and umount it
-if ($b->is_mounted("\/$smbhost(.*)\/$smbshare") or $b->is_mounted($mntdir)) {
+if ($b->is_mounted("\/$nfshost(.*)\/$nfsshare") or $b->is_mounted($mntdir)) {
     system("/bin/umount", "$mntdir");
 }
 

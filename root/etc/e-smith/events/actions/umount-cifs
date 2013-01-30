@@ -28,9 +28,9 @@ use NethServer::BackupData;
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-my $smbhost = $backupwk->prop('SmbHost');
-my $smbshare = $backupwk->prop('SmbShare');
-my $mntdir = $backupwk->prop('Mount') || '/mnt/smb';
+my $smbhost = $backupwk->prop('SMBHost');
+my $smbshare = $backupwk->prop('SMBShare');
+my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 
 exit 0 unless ($VFSType eq 'cifs');
