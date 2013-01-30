@@ -33,7 +33,7 @@ sub ldie;
 
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
-my $usblabel = $backupwk->prop('USBShare');
+my $usblabel = $backupwk->prop('USBLabel');
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
@@ -60,7 +60,7 @@ system("/bin/mkdir -p $mntdir");
 $err = qx(/bin/mount $device "$mntdir" 2>&1);
 if ($err) {
     $err =~s/\n/ /g;
-    ldie("Error while mounting /$smbshare : " . $err);        
+    ldie("Error while mounting /$usblabel : " . $err);        
 }
 
 $mntdone = 1;
