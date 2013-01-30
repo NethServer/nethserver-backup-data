@@ -42,7 +42,7 @@ if ($status = system("/etc/e-smith/events/actions/backup-data-$program"))
 {
     $backup->bad_exit("Action backup-data-$program failed", $status);
 }
-$backup->logger("STEP","backup-data-$programe done");
+$backup->logger("STEP","backup-data-$program done");
 
 if ($status = system(qw(signal-event post-backup-data)))
 {
