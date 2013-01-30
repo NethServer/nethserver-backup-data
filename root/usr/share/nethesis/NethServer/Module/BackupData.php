@@ -47,7 +47,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
     public function initialize()
     {
         parent::initialize();
-        $this->declareParameter('status', Validate::SERVICESTATUS, array('configuration', 'backup-data', ''));
+        $this->declareParameter('status', Validate::SERVICESTATUS, array('configuration', 'backup-data', 'status'));
         $this->declareParameter('BackupTime', $this->createValidator()->regexp('/^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])$/'), array('configuration', 'backup-data', 'BackupTime'));
         $this->declareParameter('Type', $this->createValidator()->memberOf(array('full','incremental')), array('configuration', 'backup-data', 'Type'));
         $this->declareParameter('ForceFull',Validate::SERVICESTATUS, array('configuration', 'backup-data', 'FaxName'));
