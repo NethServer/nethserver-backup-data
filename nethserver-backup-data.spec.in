@@ -50,3 +50,6 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Jan 30 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 0.9.0-1
+- Fist release
+
