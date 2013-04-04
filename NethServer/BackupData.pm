@@ -27,6 +27,7 @@ use NethServer::Backup;
 use vars qw($VERSION @ISA @EXPORT_OK);
 
 use constant LOG_FILE => "/var/log/backup-data.log";
+use constant NOTIFICATION_FILE => "/tmp/backup-data-notification";
 use constant CONF_DIR => "/etc/backup-data.d/";
 
 
@@ -57,10 +58,17 @@ This is the class constructor which sets the log file.
 sub new
 {
     my $class = shift;
+    my $notify = shift || 'error';
+    my $notify_to = shift || 'root@localhost';
     my $self = {
-        _log_file => LOG_FILE
+        _log_file => LOG_FILE,
+        _notify => $notify,
+        _notify_to => $notify_to,
+        _notification_file => NOTIFICATION_FILE,
     };
     $self = bless $self, $class;
+    $self->{_log_lines} = $self->_count_log_lines();
+
     return $self;
 }
 
