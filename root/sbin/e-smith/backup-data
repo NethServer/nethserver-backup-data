@@ -41,7 +41,7 @@ my $start = time;
 $backup->notify("Backup started at %s", strftime('%F %T',localtime));
 $backup->logger("START","Backup data started");
 
-if ($status = system(qw(signal-event pre-backup-data)))
+if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-data)))
 {
     $backup->notify("Pre backup scripts status: ERROR");
     $backup->bad_exit("Event pre-backup-data failed", $status);
@@ -56,7 +56,7 @@ if ($status = system("/etc/e-smith/events/actions/backup-data-$program"))
 }
 $backup->logger("STEP","backup-data-$program done");
 
-if ($status = system(qw(signal-event post-backup-data)))
+if ($status = system(qw(/sbin/e-smith/signal-event post-backup-data)))
 {
     $backup->notify("Post backup scripts status: ERROR");
     $backup->bad_exit("Event post-backup-data failed", $status);
