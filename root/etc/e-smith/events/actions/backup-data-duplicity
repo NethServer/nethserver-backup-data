@@ -58,7 +58,8 @@ if ($type eq 'full') {
        $opts .= " incr ";
     }
 } else { # nothing to do
-    $backup->bad_exit("Backup type unknown",256);
+    $backup->logger('ERROR',"Backup type unknown - 1");
+    exit 1;
 }
 
 
@@ -67,7 +68,8 @@ my @include_data_files = $backup->includes(NethServer::BackupData::CONF_DIR);
 my @exclude_data_files = $backup->excludes(NethServer::BackupData::CONF_DIR);
 
 if (!@include_data_files) {
-    $backup->bad_exit("Nothing to backup",256);
+    $backup->logger('ERROR',"Nothing to backup - 1");
+    exit 1;
 }
 
 # Create globbing file list
@@ -90,7 +92,8 @@ $opts .= "--include-globbing-filelist $tmp";
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
    $dst = " file://$mntdir ";
 } else {
-   $backup->bad_exit("No valid VFSType ($VFSType)",1);
+   $backup->logger("ERROR","No valid VFSType ($VFSType) - 1");
+   exit 1;
 }
 
 # disable encryption
@@ -104,8 +107,8 @@ if ( -e $logFile) {
 my $ret = system(CMD." $opts / $dst &>$logFile");
 
 if ($ret != 0) {
-   $backup->bad_exit("Backup failed, see $logFile for details",$ret); 
+   $backup->logger("ERROR","Backup failed, see $logFile for details - $ret");
+   exit 1; 
 }
 
 exit (0);
-

@@ -22,33 +22,54 @@
 use strict;
 use esmith::ConfigDB;
 use NethServer::BackupData;
+use POSIX qw/strftime/;
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
-my $backup = $conf->get('backup-config');
+my $backup = $conf->get('backup-data');
 my $program = $backup->prop('Program') || 'duplicity';
+# valid values for notify are: always, error, never
+my $notify = $backup->prop('notify') || 'error';
+my $notify_to = $backup->prop('notifyTo') || 'admin@localhost';
 my $status;
 
+$backup = new NethServer::BackupData($notify, $notify_to);
 
-$backup = new NethServer::BackupData();
+$backup->cleanup_notification();
+$backup->notify("===== Report for data backup =====\n");
+
+my $start = time;
+$backup->notify("Backup started at %s", strftime('%F %T',localtime));
 $backup->logger("START","Backup data started");
 
 if ($status = system(qw(signal-event pre-backup-data)))
 {
+    $backup->notify("Pre backup scripts status: ERROR");
     $backup->bad_exit("Event pre-backup-data failed", $status);
 }
 $backup->logger("STEP","pre-backup-done done");
+$backup->notify("Pre backup scripts status: SUCCESS");
 
 if ($status = system("/etc/e-smith/events/actions/backup-data-$program"))
 {
+    $backup->notify("Backup script status: ERROR");
     $backup->bad_exit("Action backup-data-$program failed", $status);
 }
 $backup->logger("STEP","backup-data-$program done");
 
 if ($status = system(qw(signal-event post-backup-data)))
 {
+    $backup->notify("Post backup scripts status: ERROR");
     $backup->bad_exit("Event post-backup-data failed", $status);
 }
+$backup->notify("Post backup scripts status: SUCCESS");
 
 $backup->logger("SUCCESS","Backup done");
+$backup->notify("Backup status: SUCCESS");
+$backup->notify("Backup ended at %s", strftime('%F %T',localtime));
+my $duration = time - $start;
+$backup->notify("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
+
+$backup->send_notification();
+
 
 exit 0;
