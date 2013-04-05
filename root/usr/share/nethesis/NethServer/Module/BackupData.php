@@ -33,11 +33,15 @@ class BackupData extends \Nethgui\Controller\AbstractController
 {
 
     /**
-     *
-     *
      * @var Array list of valid VFSType
      */
     private $vfstypes = array('usb','cifs','nfs');
+
+    /**
+     * @var Array list of valid notification values
+     */
+    private $notifytypes = array('error','always','never');
+
 
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
     {
@@ -52,7 +56,12 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->declareParameter('Type', $this->createValidator()->memberOf(array('full','incremental')), array('configuration', 'backup-data', 'Type'));
         $this->declareParameter('ForceFull',Validate::SERVICESTATUS, array('configuration', 'backup-data', 'FaxName'));
         $this->declareParameter('FullDay', $this->createValidator()->integer()->greatThan(-1)->lessThan(7), array('configuration', 'backup-data', 'FullDay'));
-        
+
+        $this->declareParameter('notifyToType', $this->createValidator()->memberOf(array('admin','custom')), array());
+        $this->declareParameter('notifyToCustom', Validate::EMAIL, array());
+        $this->declareParameter('notifyTo', FALSE, array('configuration', 'backup-data', 'notifyTo')); # not accessibile from UI, position is IMPORTANT
+        $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('configuration', 'backup-data', 'notify'));
+
         $this->declareParameter('VFSType', $this->createValidator()->memberOf($this->vfstypes), array('configuration', 'backup-data', 'VFSType'));
         
         $this->declareParameter('SMBShare', Validate::ANYTHING, array('configuration', 'backup-data', 'SMBShare'));
@@ -103,7 +112,47 @@ class BackupData extends \Nethgui\Controller\AbstractController
         }, $this->vfstypes);
 
         $view['USBLabelDatasource'] = $this->listFilesystems();
+
     }
 
+    public function readNotifyToCustom()
+    {
+        if ($this->parameters["notifyToType"] === 'custom') {
+             return $this->parameters["notifyTo"];
+        } else {
+             return "";
+        }
+    }
+
+    public function writeNotifyToCustom($value)
+    {
+        if ($this->parameters["notifyToType"] === 'custom') {
+             $this->parameters["notifyTo"] = $value;
+        } else {
+             $this->parameters["notifyTo"] = "admin@localhost";
+        }
+        return true;
+    }
+
+
+    public function readNotifyToType()
+    {
+        $current = $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','notifyTo');
+        if($current == "admin@localhost") {
+            return "admin";
+        } else {
+            return "custom";
+        }
+    }
+
+    public function writeNotifyToType($value)
+    {
+        if ($this->parameters["notifyToType"] === 'admin') {
+             $this->parameters["notifyTo"] = 'admin@localhost';
+             return 'admin';
+        } else {
+             return "";
+        }
+    }
 
 }

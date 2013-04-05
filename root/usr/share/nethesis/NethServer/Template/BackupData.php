@@ -32,9 +32,27 @@ $destination = $view->panel()
     )
 ;
 
+$notification = $view->panel()
+    ->setAttribute('title', $T('BackupData_Notification_Title'))
+    ->insert($view->fieldset()->setAttribute('template',$T('notify_label'))
+        ->insert($view->fieldsetSwitch('notify', 'error'))
+        ->insert($view->fieldsetSwitch('notify', 'always'))
+        ->insert($view->fieldsetSwitch('notify', 'never'))
+     )
+
+    ->insert($view->fieldset()->setAttribute('template',$T('notifyTo_label'))
+        ->insert($view->fieldsetSwitch('notifyToType', 'admin'))
+        ->insert($view->fieldsetSwitch('notifyToType', 'custom', $view::FIELDSETSWITCH_EXPANDABLE)
+            ->insert($view->textInput('notifyToCustom'))
+        )
+    )
+;
+
+
 $tabs = $view->tabs()
     ->insert($general)
     ->insert($destination)
+    ->insert($notification)
 ;
 
 echo $tabs;
