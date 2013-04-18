@@ -19,8 +19,6 @@ NethServer backup of config and data files
 %preun
 
 %post
-source /etc/nethserver/rpm_hook_functions
-event_queue add %{name}-update
 
 %prep
 %setup
