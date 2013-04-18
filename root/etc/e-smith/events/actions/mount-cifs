@@ -61,7 +61,7 @@ if ($b->is_mounted("\/$smbhost(.*)\/$smbshare") or $b->is_mounted($mntdir)) {
 }
 
 # mount the backup dir
-$err = qx(/bin/mount -t cifs "$smbhost:$smbshare" $mntdir -o credentials=$tmp,nounix 2>&1);
+$err = qx(/bin/mount -t cifs "//$smbhost/$smbshare" $mntdir -o credentials=$tmp,nounix 2>&1);
 if ($err) {
     $err =~s/\n/ /g;
     ldie("Error while mounting $smbhost:$smbshare : " . $err); 
