@@ -40,6 +40,7 @@ my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $fullday = $backupwk->prop('FullDay') || 0;
 my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $logFile = $backupwk->prop('LogFile') || '/var/log/last-backup.log';
+my $volSize = $backupwk->prop('VolSize') || '250';
 my $opts = '';
 my $dst = "";
 
@@ -88,6 +89,7 @@ foreach  (@exclude_data_files) {
 print $tmp "- **\n";
 
 $opts .= "--include-globbing-filelist $tmp";
+$opts .= " --volsize $volSize ";
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
    $dst = " file://$mntdir ";
