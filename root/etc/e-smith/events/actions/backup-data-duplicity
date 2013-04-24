@@ -35,7 +35,6 @@ my $tm = localtime(time);
 my $dow = $tm->wday;
 
 my $type = $backupwk->prop('Type') || 'full';
-my $forceFull = $backupwk->prop('ForceFull') || 'enabled';
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $fullday = $backupwk->prop('FullDay') || 0;
 my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
@@ -47,16 +46,15 @@ my $dst = "";
 our $backup = new NethServer::BackupData();
 
 if ($type eq 'full') {
-  # do full
-  $opts .= " full ";
+     # do full
+     $opts .= " full ";
 } elsif ($type eq 'incremental') {
-    # execute full if today is the right day or if ForceFull flag is enabled
-    if ( ($dow == $fullday) || ($forceFull eq 'enabled') ) {
+    if ($dow == $fullday) { #force full on selected week day
         # do full
         $opts .= " full ";
-    } else { # execute incremental backup
+    } else {
         # do incremental
-       $opts .= " incr ";
+        $opts .= " incr ";
     }
 } else { # nothing to do
     $backup->logger('ERROR',"Backup type unknown - 1");
@@ -98,6 +96,8 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
    exit 1;
 }
 
+# force full backup if not exists > 8 days
+$opts .= " --full-if-older-than 8D ";
 # disable encryption
 $opts .= " --no-encryption ";
 # set duplicity cache dir

@@ -18,7 +18,6 @@ $L['BackupData_Title'] = 'Backup';
 $L['BackupDataType_label'] = 'Type';
 $L['BackupTime_label'] = 'Schedule time';
 $L['cifs_label'] = 'CIFS';
-$L['ForceFull_label'] = 'Force full backup when needed';
 $L['FullDay_label'] = 'Full backup will be on';
 $L['full_label'] = 'Full';
 $L['incremental_label'] = 'Incremental';

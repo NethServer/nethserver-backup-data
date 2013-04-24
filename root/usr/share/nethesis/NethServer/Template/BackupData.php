@@ -10,7 +10,6 @@ $general = $view->panel()
         ->insert($view->fieldsetSwitch('Type', 'full'))
         ->insert($view->fieldsetSwitch('Type', 'incremental', $view::FIELDSETSWITCH_EXPANDABLE)
             ->insert($view->selector('FullDay', $view::SELECTOR_DROPDOWN))
-            ->insert($view->checkbox('ForceFull','enabled')->setAttribute('uncheckedValue', 'disabled'))
         )
      )
 
