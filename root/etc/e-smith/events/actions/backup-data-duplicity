@@ -29,6 +29,8 @@ use NethServer::BackupData;
 use constant CMD => '/usr/bin/duplicity';
 
 my $confdb = esmith::ConfigDB->open;
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 
 my $tm = localtime(time);
@@ -90,7 +92,8 @@ $opts .= "--include-globbing-filelist $tmp";
 $opts .= " --volsize $volSize ";
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
-   $dst = " file://$mntdir ";
+   mkdir "$mntdir/$systemname";
+   $dst = " file://$mntdir/$systemname ";
 } else {
    $backup->logger("ERROR","No valid VFSType ($VFSType) - 1");
    exit 1;
