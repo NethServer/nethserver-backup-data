@@ -30,7 +30,13 @@ my $program = $backup->prop('Program') || 'duplicity';
 # valid values for notify are: always, error, never
 my $notify = $backup->prop('notify') || 'error';
 my $notify_to = $backup->prop('notifyTo') || 'admin@localhost';
+my $logFile = $backup->prop('LogFile') || '/var/log/last-backup.log';
 my $status;
+
+# remove log file
+if ( -e $logFile) {
+   unlink($logFile);
+}
 
 $backup = new NethServer::BackupData($notify, $notify_to);
 
@@ -52,7 +58,7 @@ $backup->notify("Pre backup scripts status: SUCCESS");
 if ($status = system("/etc/e-smith/events/actions/backup-data-$program"))
 {
     $backup->notify("Backup script status: ERROR");
-    $backup->bad_exit("Action backup-data-$program failed", $status>>8);
+    $backup->bad_exit("Action backup-data-$program failed", $status>>8, $logFile);
 }
 $backup->logger("STEP","backup-data-$program done");
 

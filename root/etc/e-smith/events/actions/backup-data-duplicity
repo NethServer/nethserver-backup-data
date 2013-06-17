@@ -105,10 +105,6 @@ $opts .= " --full-if-older-than 8D ";
 $opts .= " --no-encryption ";
 # set duplicity cache dir
 $opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
-# add log file
-if ( -e $logFile) {
-   unlink($logFile);
-}
 my $ret = system(CMD." $opts / $dst &>$logFile");
 
 if ($ret != 0) {
