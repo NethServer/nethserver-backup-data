@@ -59,7 +59,7 @@ sub new
 {
     my $class = shift;
     my $notify = shift || 'error';
-    my $notify_to = shift || 'root@localhost';
+    my $notify_to = shift || '';
     my $self = {
         _log_file => LOG_FILE,
         _notify => $notify,
