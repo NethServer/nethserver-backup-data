@@ -8,7 +8,7 @@ Source: %{name}-%{version}.tar.gz
 BuildArch: noarch
 BuildRequires: nethserver-devtools
 Requires: cifs-utils, nfs-utils, duplicity
-Requires: nethserver-backup-config
+Requires: nethserver-backup-config >= 1.0.2
 AutoReq: no
 
 
@@ -48,6 +48,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Jun 17 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.2-1.ns6
+- Avoid duplicate notifications. Refs #2023
+- Implement simple retention policy. Refs #2024
+
 * Tue Apr 30 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.1-1.ns6
 - Rebuild for automatic package handling. #1870
 - Add mail notification #1572
