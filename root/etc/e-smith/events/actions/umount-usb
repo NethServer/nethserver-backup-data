@@ -49,7 +49,7 @@ chomp $device; # remove trailing new line
 
 # verify backup directory not already mounted
 
-if (!$b->is_mounted($device)) {
+if ($b->is_mounted($device)) {
     system("/bin/umount", "$mntdir");
 }
 

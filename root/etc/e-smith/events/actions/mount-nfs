@@ -45,17 +45,16 @@ exit 0 unless ($VFSType eq 'nfs');
 
 our $b = new NethServer::BackupData();
 
-# verify backup directory not already mounted
+# mounting backup directory if not already mounted
+if (!$b->is_mounted("\/$nfshost(.*)\/$nfsshare") && !$b->is_mounted($mntdir)) {
 
-if ($b->is_mounted("\/$nfshost(.*)\/$nfsshare") or $b->is_mounted($mntdir)) {
-    ldie("Backup directory is already mounted");
-}
+    # mount the backup dir
+    $err = qx(/bin/mount -t nfs -o nolock "$nfshost:$nfsshare" $mntdir 2>&1);
+    if ($err) {
+        $err =~s/\n/ /g;
+        ldie("Error while mounting $nfshost:$nfsshare : " . $err); 
+    }
 
-# mount the backup dir
-$err = qx(/bin/mount -t nfs -o nolock "$nfshost:$nfsshare" $mntdir 2>&1);
-if ($err) {
-    $err =~s/\n/ /g;
-    ldie("Error while mounting $nfshost:$nfsshare : " . $err); 
 }
 
 $mntdone = 1;

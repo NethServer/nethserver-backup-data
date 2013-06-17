@@ -47,28 +47,20 @@ our $b = new NethServer::BackupData();
 my $device = qx( /sbin/blkid -u filesystem -L $usblabel);
 chomp $device; # remove trailing new line
 
-# verify backup directory not already mounted
+# mount backup directory if not already mounted
+if (!$b->is_mounted($device)) {
+    # create mnt directory
+    system("/bin/mkdir -p $mntdir");
 
-if ($b->is_mounted($device)) {
-    ldie("Backup directory is already mounted");
-}
-
-# create mnt directory
-system("/bin/mkdir -p $mntdir");
-
-# mount the disk
-$err = qx(/bin/mount $device "$mntdir" 2>&1);
-if ($err) {
-    $err =~s/\n/ /g;
-    ldie("Error while mounting /$usblabel : " . $err);        
+    # mount the disk
+    $err = qx(/bin/mount $device "$mntdir" 2>&1);
+    if ($err) {
+        $err =~s/\n/ /g;
+        ldie("Error while mounting /$usblabel : " . $err);        
+    }
 }
 
 $mntdone = 1;
-
-# verify $mntdir has an entry in /proc/mounts
-if (!$b->is_mounted($mntdir)) {
-    ldie("Backup directory is not mounted")
-}
 
 sub ldie 
 {

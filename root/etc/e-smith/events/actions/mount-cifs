@@ -53,18 +53,15 @@ chmod(0600,$tmp->filename);
 print $tmp "user=$login\n";
 print $tmp "password=$password\n";
 
-# mounting backup directory
-# verify backup directory not already mounted
+# mounting backup directory if not already mounted
+if (!$b->is_mounted("\/$smbhost(.*)\/$smbshare") && !$b->is_mounted($mntdir)) {
 
-if ($b->is_mounted("\/$smbhost(.*)\/$smbshare") or $b->is_mounted($mntdir)) {
-    ldie("Backup directory is already mounted");
-}
-
-# mount the backup dir
-$err = qx(/bin/mount -t cifs "//$smbhost/$smbshare" $mntdir -o credentials=$tmp,nounix 2>&1);
-if ($err) {
-    $err =~s/\n/ /g;
-    ldie("Error while mounting $smbhost:$smbshare : " . $err); 
+    # mount the backup dir
+    $err = qx(/bin/mount -t cifs "//$smbhost/$smbshare" $mntdir -o credentials=$tmp,nounix 2>&1);
+    if ($err) {
+        $err =~s/\n/ /g;
+        ldie("Error while mounting $smbhost:$smbshare : " . $err); 
+    }
 }
 
 $mntdone = 1;
