@@ -33,10 +33,10 @@ my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found
 $systemname = $systemname->prop('type');
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 
-my $cot = $backupwk->prop('CleanupOlderThan') || '';
+my $cot = $backupwk->prop('CleanupOlderThan') || 'never';
 
 # skip all if cleanup is not set
-exit(0) unless($cot ne "");
+exit(0) unless($cot ne "never");
 
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';

@@ -41,6 +41,11 @@ class BackupData extends \Nethgui\Controller\AbstractController
      * @var Array list of valid notification values
      */
     private $notifytypes = array('error','always','never');
+    
+    /**
+     * @var Array list of valid cleanup times
+     */
+    private $cleanuptypes = array('never','7D','30D','60D');
 
 
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
@@ -72,6 +77,8 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->declareParameter('NFSHost', Validate::ANYTHING, array('configuration', 'backup-data', 'NFSHost'));
         
         $this->declareParameter('USBLabel', Validate::ANYTHING, array('configuration', 'backup-data', 'USBLabel'));
+    
+        $this->declareParameter('CleanupOlderThan', $this->createValidator()->memberOf($this->cleanuptypes), array('configuration', 'backup-data', 'CleanupOlderThan'));
 
     }
 
@@ -111,7 +118,10 @@ class BackupData extends \Nethgui\Controller\AbstractController
         }, $this->vfstypes);
 
         $view['USBLabelDatasource'] = $this->listFilesystems();
-
+        
+        $view['CleanupOlderThanDatasource'] = array_map(function($fmt) use ($view) {
+            return array($fmt, $view->translate($fmt . '_label'));
+        }, $this->cleanuptypes);
     }
 
     public function readNotifyToCustom()

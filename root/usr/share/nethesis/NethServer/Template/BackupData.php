@@ -13,6 +13,10 @@ $general = $view->panel()
         )
      )
 
+    ->insert($view->fieldset()->setAttribute('template',$T('RetentionPolicy_label'))
+        ->insert($view->selector('CleanupOlderThan', $view::SELECTOR_DROPDOWN))
+     )
+
 ;
 $destination = $view->panel()
     ->setAttribute('title', $T('BackupData_Destination_Title'))
