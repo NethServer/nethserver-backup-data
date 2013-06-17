@@ -1,0 +1,68 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::ConfigDB;
+use File::Temp;
+use Time::localtime;
+use NethServer::BackupData;
+
+use constant CMD => '/usr/bin/duplicity';
+
+my $confdb = esmith::ConfigDB->open;
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
+my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+
+my $cot = $backupwk->prop('CleanupOlderThan') || '';
+
+# skip all if cleanup is not set
+exit(0) unless($cot ne "");
+
+my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
+my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+my $logFile = '/var/log/last-cleanup.log';
+my $opts = '';
+my $dst = "";
+
+our $backup = new NethServer::BackupData();
+
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+   mkdir "$mntdir/$systemname";
+   $dst = " file://$mntdir/$systemname ";
+} else {
+   $backup->bad_exit("No valid VFSType ($VFSType)", 1);
+}
+
+# set duplicity cache dir
+$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
+my $ret = system(CMD." remove-older-than $cot $opts $dst --force &>$logFile");
+
+if ($ret != 0) {
+   $backup->bad_exit("Remove of old backup failed. See: ".$logFile, $ret);
+}
+$ret = system(CMD." cleanup --no-encryption $opts $dst --force --extra-clean &>>$logFile");
+if ($ret != 0) {
+   $backup->bad_exit("Metadata cleanup failed. See:".$logFile, $ret, $logFile);
+}
+
+exit (0);
