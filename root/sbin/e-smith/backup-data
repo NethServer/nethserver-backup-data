@@ -58,17 +58,16 @@ $backup->notify("Pre backup scripts status: SUCCESS");
 if ($status = system("/etc/e-smith/events/actions/backup-data-$program"))
 {
     $backup->notify("Backup script status: ERROR");
+    print "bad_exit: $logFile\n";
     $backup->bad_exit("Action backup-data-$program failed", $status>>8, $logFile);
 }
 $backup->logger("STEP","backup-data-$program done");
-$backup->notify("Backup script status: SUCCESS");
 
 if ($status = system(qw(/sbin/e-smith/signal-event post-backup-data)))
 {
     $backup->notify("Post backup scripts status: ERROR");
     $backup->bad_exit("Event post-backup-data failed", $status>>8);
 }
-$backup->logger("STEP","post-backup done");
 $backup->notify("Post backup scripts status: SUCCESS");
 
 $backup->logger("SUCCESS","Backup done");
