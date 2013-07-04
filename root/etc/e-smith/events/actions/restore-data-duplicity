@@ -31,6 +31,8 @@ my $position = shift @ARGV || '/';
 my @files = @ARGV;
 
 my $confdb = esmith::ConfigDB->open;
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 
 
@@ -47,7 +49,7 @@ $backup->set_log_file('/var/log/restore-data.log');
 
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
-   $src = " file://$mntdir ";
+   $src = " file://$mntdir/$systemname ";
 } else {
    $backup->bad_exit("No valid VFSType ($VFSType)",1);
 }
