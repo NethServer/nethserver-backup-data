@@ -44,6 +44,7 @@ my $logFile = $backupwk->prop('LogFile') || '/var/log/last-backup.log';
 my $volSize = $backupwk->prop('VolSize') || '250';
 my $opts = '';
 my $dst = "";
+my $cacheDir = "/var/lib/nethserver/backup/duplicity/";
 
 our $backup = new NethServer::BackupData();
 
@@ -88,7 +89,7 @@ foreach  (@exclude_data_files) {
 }
 print $tmp "- **\n";
 
-$opts .= "--include-globbing-filelist $tmp";
+$opts .= " --exclude=$cacheDir --include-globbing-filelist $tmp";
 $opts .= " --volsize $volSize ";
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
@@ -104,7 +105,7 @@ $opts .= " --full-if-older-than 8D ";
 # disable encryption
 $opts .= " --no-encryption ";
 # set duplicity cache dir
-$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
+$opts .= " --archive-dir $cacheDir ";
 my $ret = system(CMD." $opts / $dst &>$logFile");
 
 if ($ret != 0) {

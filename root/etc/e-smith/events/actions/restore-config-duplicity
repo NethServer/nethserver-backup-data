@@ -1,0 +1,78 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::ConfigDB;
+use NethServer::BackupData;
+use NethServer::BackupConfig;
+
+use constant CMD => '/usr/bin/duplicity';
+
+my $file = $ARGV[0];
+# remove starting /
+if ( substr($file, 0, 1) eq '/' ) {
+    $file = substr $file, 1;
+}
+
+my $confdb = esmith::ConfigDB->open;
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
+my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+
+
+my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
+my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+my $opts = '';
+my $src = "";
+
+my $backup = new NethServer::BackupData();
+$backup->set_log_file('/var/log/restore-data.log');
+
+
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+   $src = " file://$mntdir/$systemname ";
+   my $status = system("/etc/e-smith/events/actions/mount-$VFSType");
+   if ($status) {
+       $backup->bad_exit("Can't mount $VFSType filesystem");
+   }
+} else {
+   $backup->bad_exit("No valid VFSType ($VFSType)",1);
+}
+
+# disable encryption
+$opts .= " --no-encryption ";
+# set duplicity cache dir
+$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
+
+# restore single file
+my $cmd = CMD." restore $opts --force --file-to-restore $file $src /$file >/dev/null";
+
+if (my $ret = system($cmd)) {
+   system("/etc/e-smith/events/actions/umount-$VFSType");
+   $backup->bad_exit("Restore backup config failed",$ret); 
+}
+  
+# if umount fails, exit 0 anyway 
+system("/etc/e-smith/events/actions/umount-$VFSType");
+
+exit (0);
+
