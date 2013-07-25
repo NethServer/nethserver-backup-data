@@ -33,7 +33,7 @@ sub ldie;
 
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
-my $usblabel = $backupwk->prop('USBLabel');
+my $usblabel = $backupwk->prop('USBLabel') || die "No USBLabel set";
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
@@ -48,7 +48,7 @@ my $device = qx( /sbin/blkid -u filesystem -L $usblabel);
 chomp $device; # remove trailing new line
 
 # mount backup directory if not already mounted
-if (!$b->is_mounted($device)) {
+if (!$b->is_mounted($device) || !$b->is_mounted($mntdir)) {
     # create mnt directory
     system("/bin/mkdir -p $mntdir");
 
