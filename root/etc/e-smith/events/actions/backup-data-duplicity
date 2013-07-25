@@ -81,11 +81,11 @@ chmod(0600,$tmp->filename);
 $backup->uniq(\@include_data_files);
 $backup->uniq(\@exclude_data_files);
 
-foreach  (@include_data_files) {
-   print $tmp "+ $_\n";
-}
 foreach  (@exclude_data_files) {
    print $tmp "- $_\n";
+}
+foreach  (@include_data_files) {
+   print $tmp "+ $_\n";
 }
 print $tmp "- **\n";
 
@@ -106,6 +106,12 @@ $opts .= " --full-if-older-than 8D ";
 $opts .= " --no-encryption ";
 # set duplicity cache dir
 $opts .= " --archive-dir $cacheDir ";
+
+# Debug 
+# $opts .= " --dry-run -v8 ";
+# print $tmp->filename."\n";
+# print CMD." $opts / $dst &>$logFile\n";
+
 my $ret = system(CMD." $opts / $dst &>$logFile");
 
 if ($ret != 0) {
