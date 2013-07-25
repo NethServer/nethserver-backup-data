@@ -75,7 +75,7 @@ $backup->notify("Backup ended at %s", strftime('%F %T',localtime));
 my $duration = time - $start;
 $backup->notify("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
 
-$backup->send_notification();
+$backup->send_notification(0,$logFile);
 
 
 exit 0;
