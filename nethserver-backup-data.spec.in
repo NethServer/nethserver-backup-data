@@ -48,6 +48,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Jul 31 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.5-1.ns6
+- Check if USBLabel is empty, check if USB disk is mounted on /mnt/backup #2022
+- Force exclusions before inclusions
+- Attach log on notification
+
 * Fri Jul 12 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.4-1.ns6
 - Backup: implement and document full restore #2043
 
