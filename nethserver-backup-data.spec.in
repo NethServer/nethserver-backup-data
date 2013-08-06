@@ -48,6 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Aug 06 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.6-1.ns6
+- Do not raise error on empty USBLabel if VFSType is not usb #2022
+
 * Wed Jul 31 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.5-1.ns6
 - Check if USBLabel is empty, check if USB disk is mounted on /mnt/backup #2022
 - Force exclusions before inclusions
