@@ -33,13 +33,13 @@ sub ldie;
 
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
-my $usblabel = $backupwk->prop('USBLabel') || die "No USBLabel set";
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 my $mntdone = 0;
 
 exit 0 unless ($VFSType eq 'usb');
+my $usblabel = $backupwk->prop('USBLabel') || die "No USBLabel set";
 
 our $b = new NethServer::BackupData();
 
