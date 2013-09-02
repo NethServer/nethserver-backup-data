@@ -111,7 +111,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
 
         $view['FullDayDatasource'] = array_map(function($fmt) use ($view) {
             return array($fmt, $view->translate($fmt . '_label'));
-        }, array(0, 1, 2, 3, 4, 5, 6));
+        }, array("0", "1", "2", "3", "4", "5", "6"));
 
         $view['VFSTypeDatasource'] = array_map(function($fmt) use ($view) {
             return array($fmt, $view->translate($fmt . '_label'));
