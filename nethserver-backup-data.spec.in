@@ -48,6 +48,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Oct 16 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.7-1.ns6
+- Exclude e-smith db directory #2143
+- Minor fix on web UI #2040
+
 * Tue Aug 06 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.6-1.ns6
 - Do not raise error on empty USBLabel if VFSType is not usb #2022
 
