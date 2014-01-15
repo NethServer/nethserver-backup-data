@@ -38,6 +38,9 @@ if ( -e $logFile) {
    unlink($logFile);
 }
 
+# Make sure configuration backup is updated
+system('/sbin/e-smith/backup-config');
+
 $backup = new NethServer::BackupData($notify, $notify_to);
 
 $backup->cleanup_notification();
