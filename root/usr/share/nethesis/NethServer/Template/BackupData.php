@@ -46,7 +46,7 @@ $notification = $view->panel()
     ->insert($view->fieldset()->setAttribute('template',$T('notifyTo_label'))
         ->insert($view->fieldsetSwitch('notifyToType', 'admin'))
         ->insert($view->fieldsetSwitch('notifyToType', 'custom', $view::FIELDSETSWITCH_EXPANDABLE)
-            ->insert($view->textInput('notifyToCustom'))
+        ->insert($view->textInput('notifyToCustom',  $view::LABEL_NONE))
         )
     )
 ;
