@@ -36,6 +36,9 @@ class Backup extends \Nethgui\Controller\AbstractController
     {
         $log = "/var/log/backup-data.log";
         $backup = array();
+        $backup['result'] = '-';
+        $backup['start'] = '-';
+        $backup['end'] = '-';
         if (file_exists($log)) {
             $lines = array_reverse(file($log));
             foreach ($lines as $line) {
@@ -45,12 +48,14 @@ class Backup extends \Nethgui\Controller\AbstractController
                     break;
                 }
             }
-            $tmp = explode(' - ', $lines[0]);
-            $backup['result'] = $tmp[1];;
-            $backup['end'] = strtotime($tmp[0]);
+            if (isset($lines[0])) {
+                $tmp = explode(' - ', $lines[0]);
+                $backup['result'] = $tmp[1];;
+                $backup['end'] = strtotime($tmp[0]);
+            }
         }
         $br = $this->getPlatform()->getDatabase('configuration')->getKey('backup-data');
-        $backup['vfs'] = $br['VFSType'];
+        $backup['vfs'] = $br['VFSType'] ? $br['VFSType'] : '-';
         $backup['status'] = $br['status'];
         $backup['type'] = $br['Type'];
         $backup['time'] = $br['BackupTime'];
