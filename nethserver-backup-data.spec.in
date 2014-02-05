@@ -49,6 +49,12 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Feb 05 2014 Davide Principi <davide.principi@nethesis.it> - 1.0.8-1.ns6
+- NethCamp 2014 - Task #2618 [NethServer]
+- Backup: force backup of configuration before starting backup-data - Enhancement #2118 [NethServer]
+- Update all inline help documentation - Task #1780 [NethServer]
+- Dashboard: new widgets - Enhancement #1671 [NethServer]
+
 * Wed Oct 16 2013 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.7-1.ns6
 - Exclude e-smith db directory #2143
 - Minor fix on web UI #2040
