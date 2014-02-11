@@ -138,7 +138,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
         if ($this->parameters["notifyToType"] === 'custom') {
              $this->parameters["notifyTo"] = $value;
         } else {
-             $this->parameters["notifyTo"] = "admin@localhost";
+             $this->parameters["notifyTo"] = "root@localhost";
         }
         return true;
     }
@@ -147,7 +147,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
     public function readNotifyToType()
     {
         $current = $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','notifyTo');
-        if($current == "admin@localhost") {
+        if($current == "root@localhost") {
             return "admin";
         } else {
             return "custom";
@@ -157,7 +157,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
     public function writeNotifyToType($value)
     {
         if ($this->parameters["notifyToType"] === 'admin') {
-             $this->parameters["notifyTo"] = 'admin@localhost';
+             $this->parameters["notifyTo"] = 'root@localhost';
              return 'admin';
         } else {
              return "";
