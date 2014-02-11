@@ -70,9 +70,9 @@ if (@files) {  # restore selected files
     foreach (@files) {
         $cmd = CMD." restore $opts ";
         if ($position eq "/") {
-            $cmd .= " --force --file-to-restore $_ $src /$_";
+            $cmd .= " --force --file-to-restore '$_' $src /'$_'";
         } else {
-            $cmd .= " --file-to-restore $_ $src $position/$_";
+            $cmd .= " --file-to-restore '$_' $src $position/'$_'";
         }
         $ret += system("$cmd &>>$logFile");
     } 
