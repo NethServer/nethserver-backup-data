@@ -60,7 +60,7 @@ my $ret = system(CMD." remove-older-than $cot $opts $dst --force &>$logFile");
 if ($ret != 0) {
    $backup->bad_exit("Remove of old backup failed. See: ".$logFile, $ret);
 }
-$ret = system(CMD." cleanup --no-encryption $opts $dst --force --extra-clean &>>$logFile");
+$ret = system(CMD." cleanup --no-encryption $opts $dst --force &>>$logFile");
 if ($ret != 0) {
    $backup->bad_exit("Metadata cleanup failed. See:".$logFile, $ret, $logFile);
 }
