@@ -28,6 +28,7 @@ use strict;
 use Errno;
 use esmith::ConfigDB;
 use NethServer::BackupData;
+use File::Path qw(make_path);
 
 sub ldie;
 
@@ -46,6 +47,11 @@ our $b = new NethServer::BackupData();
 # get the device name
 my $device = qx( /sbin/blkid -u filesystem -L $usblabel);
 chomp $device; # remove trailing new line
+
+# creating mount directory
+if ( ! -d $mntdir ) {
+    make_path($mntdir);
+}
 
 # mount backup directory if not already mounted
 if (!$b->is_mounted($device) || !$b->is_mounted($mntdir)) {

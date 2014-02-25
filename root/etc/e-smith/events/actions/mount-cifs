@@ -29,6 +29,7 @@ use Errno;
 use File::Temp;
 use esmith::ConfigDB;
 use NethServer::BackupData();
+ use File::Path qw(make_path);
 
 sub ldie;
 
@@ -52,6 +53,11 @@ my $tmp = File::Temp->new(UNLINK => 1);
 chmod(0600,$tmp->filename);
 print $tmp "user=$login\n";
 print $tmp "password=$password\n";
+
+# creating mount directory
+if ( ! -d $mntdir ) {
+    make_path($mntdir);
+}
 
 # mounting backup directory if not already mounted
 if (!$b->is_mounted("\/$smbhost(.*)\/$smbshare") && !$b->is_mounted($mntdir)) {
