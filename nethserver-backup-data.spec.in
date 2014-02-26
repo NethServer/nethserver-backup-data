@@ -49,6 +49,12 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Feb 26 2014 Davide Principi <davide.principi@nethesis.it> - 1.0.9-1.ns6
+- Backup data: can't install package if backup is in progress - Bug #2667 [NethServer]
+- Backup data: can't restore backup from old chians - Bug #2665 [NethServer]
+- Send backup notification to root - Enhancement #2647 [NethServer]
+- restore-data-duplicity action fails with whitespaces - Bug #2643 [NethServer]
+
 * Wed Feb 05 2014 Davide Principi <davide.principi@nethesis.it> - 1.0.8-1.ns6
 - NethCamp 2014 - Task #2618 [NethServer]
 - Backup: force backup of configuration before starting backup-data - Enhancement #2118 [NethServer]
