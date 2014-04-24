@@ -1,2 +1,2 @@
-/etc/backup-config.d/custom.include
-/etc/backup-config.d/custom.exclude
+/etc/backup-data.d/custom.include
+/etc/backup-data.d/custom.exclude
