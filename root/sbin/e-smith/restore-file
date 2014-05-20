@@ -22,7 +22,26 @@
 
 use strict;
 use esmith::ConfigDB;
- use File::Path;
+use File::Path;
+use Getopt::Std;
+
+sub print_help
+{
+    print "Usage $0 [-t <days>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
+    print "  -t : specify the time from which to restore or list files\n";
+    print "  -h : show this help\n";
+}
+
+my %options=();
+getopts("ht:", \%options);
+my $help = $options{h};
+my $time = $options{t} || '';
+
+if ($help)
+{
+  print_help();
+  exit(0);
+}
 
 
 my $dst_path = shift @ARGV || '/';
@@ -38,7 +57,12 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
 
    foreach (@files) {
        my $file = " --file-to-restore $_ ";
-       my @args = ("/etc/e-smith/events/actions/restore-data-duplicity", $dst_path);
+       my @args = ("/etc/e-smith/events/actions/restore-data-duplicity");
+       if ($time) {
+           push(@args, "-t");
+           push(@args, $time);
+       }
+       push(@args,  $dst_path);
        push(@args, @files);
        system(@args);
    }
