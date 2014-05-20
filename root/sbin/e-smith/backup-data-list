@@ -1,0 +1,70 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::ConfigDB;
+use File::Temp;
+
+my $formatted = 0;
+if (defined($ARGV[0])) {
+    if ($ARGV[0] eq '-f') {
+        $formatted = 1;
+    } else {
+        print "Usage: $0 [-f]\n";
+        print "  -f : print in parsable format\n";
+        exit;
+    }
+}
+my $confdb = esmith::ConfigDB->open;
+my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
+my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
+my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+
+
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+   system("/etc/e-smith/events/actions/mount-$VFSType");
+
+   if ($formatted) {
+       my $tmp = File::Temp->new( UNLINK => 1);
+       system("/usr/bin/duplicity list-current-files --log-file=".$tmp->filename." --archive-dir /var/lib/nethserver/backup/duplicity/ file:///mnt/backup/$systemname >/dev/null");
+       while(<$tmp>)  {
+           # Line example: INFO 10 20140429T154215Z 'var/lib/nethserver/winregistry-patches'
+           my ($tag, $number, $date, $file) = split(/\s/);
+           if ($tag eq 'INFO') {
+               $file =~ s/'//g;
+               print "$date $file\n";
+           }
+       }
+   } else {
+       system("/usr/bin/duplicity list-current-files --archive-dir /var/lib/nethserver/backup/duplicity/ file:///mnt/backup/$systemname");
+   }
+
+   system("/etc/e-smith/events/actions/mount-$VFSType");
+} else {
+   die('No valid VFSType found');
+}
+
+exit (0);
+

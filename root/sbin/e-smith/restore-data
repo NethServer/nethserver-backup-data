@@ -33,7 +33,7 @@ $backup->set_log_file("/var/log/restore-data.log");
 
 $backup->logger("START","Restore data started");
 
-if ($status = system(qw(signal-event pre-restore-data)))
+if ($status = system(qw(/sbin/e-smith/signal-event pre-restore-data)))
 {
     $backup->bad_exit("Event pre-restore-data failed", $status);
 }
@@ -45,7 +45,7 @@ if ($status = system("/etc/e-smith/events/actions/restore-data-$program"))
 }
 $backup->logger("STEP","restore-data-$program done");
 
-if ($status = system(qw(signal-event post-restore-data)))
+if ($status = system(qw(/sbin/e-smith/signal-event post-restore-data)))
 {
     $backup->bad_exit("Event post-restore-data failed", $status);
 }

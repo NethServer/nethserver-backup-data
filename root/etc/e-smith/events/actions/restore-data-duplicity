@@ -24,6 +24,8 @@ use strict;
 use esmith::ConfigDB;
 use NethServer::BackupData;
 use NethServer::BackupConfig;
+use File::Path  qw(make_path);
+use File::Basename;
 
 use constant CMD => '/usr/bin/duplicity';
 
@@ -69,9 +71,12 @@ my $cmd = CMD." restore $opts ";
 if (@files) {  # restore selected files
     foreach (@files) {
         $cmd = CMD." restore $opts ";
+        my($filename, $directories, $suffix) = fileparse($_);
         if ($position eq "/") {
+            make_path("/$directories");
             $cmd .= " --force --file-to-restore '$_' $src /'$_'";
         } else {
+            make_path("$position/$directories");
             $cmd .= " --file-to-restore '$_' $src $position/'$_'";
         }
         $ret += system("$cmd &>>$logFile");
