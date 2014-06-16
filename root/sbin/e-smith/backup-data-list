@@ -61,7 +61,7 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
        system("/usr/bin/duplicity list-current-files --archive-dir /var/lib/nethserver/backup/duplicity/ file:///mnt/backup/$systemname");
    }
 
-   system("/etc/e-smith/events/actions/mount-$VFSType");
+   system("/etc/e-smith/events/actions/umount-$VFSType");
 } else {
    die('No valid VFSType found');
 }
