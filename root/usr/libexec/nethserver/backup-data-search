@@ -1,0 +1,64 @@
+#!/usr/bin/perl -w
+
+use JSON;
+
+sub help {
+    print "Usage: $0 <file-list> [file]\n\n";
+    print "  <file-list> : file containing backup file list in the format\n";
+    print "  [file] : file to search\n";
+    print "           If file starts with /, all file inside that directory will be listed.\n";
+    print "           Otherwise all matched files will be listed.\n";
+    print "           If empty, only main directories will be listed\n\n";
+}
+
+
+my $file=$ARGV[0] || '';
+my $root=$ARGV[1] || '';
+
+my @known_paths = (
+    'root',
+    'var/lib/nethserver/ibay',
+    'var/lib/nethserver/vmail',
+    'var/lib/nethserver/home',
+    'var/lib/nethserver/ftp',
+    'var/lib/nethserver/netlogon',
+    'var/lib/nethserver/profile',
+    'var/lib/nethserver/fax'
+);
+
+if ( ! -f $file ) {
+    help();
+    exit 1;
+}
+
+my @lines;
+if ($root eq '') {
+   foreach (@known_paths) {
+     my $ret = system("grep -q $_ $file");
+     if ($ret == 0) {
+         push(@lines, $_);
+     }
+   }
+} else {
+   if (index($root,'/') == 0) {  
+       $root = substr($root, 1);
+       my @tmp = split('/',$root);
+       my $len = scalar (@tmp);
+       my $fields;
+       for (my $i=1; $i <= (scalar(@tmp) + 1); $i++) {
+           $fields .= '"/" b['.$i.'] ';
+       }
+       my $excludes = 'Maildir/.*/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]';
+       @lines = ` grep 'Z $root' $file | grep -v -e '$excludes' | awk '{  st = index(\$0," "); split(\$2,b,\"/\"); print $fields }' | uniq`;
+   } else {
+       my $excludes = 'Maildir/.*/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]';
+       @lines = `grep '$root' $file | grep -v -e '$excludes' | awk '{ st = index(\$0," "); print \$2 }'`;
+   }
+}
+
+
+# Print output
+chomp @lines;
+my $json = JSON->new;
+print $json->encode( {results =>\@lines} );
+
