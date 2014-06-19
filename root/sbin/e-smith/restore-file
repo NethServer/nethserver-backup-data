@@ -45,7 +45,15 @@ if ($help)
 
 
 my $dst_path = shift @ARGV || '/';
-my @files = @ARGV;
+my @files;
+
+foreach (@ARGV) {
+    if ( $_ =~ /^\// ) { #remove leading slash
+        push(@files,substr($_,1));
+    } else {
+        push(@files,$_);
+    }
+}
 
 my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
@@ -55,17 +63,17 @@ my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
    system("/etc/e-smith/events/actions/mount-$VFSType");
 
+   my @args = ("/etc/e-smith/events/actions/restore-data-duplicity");
+   if ($time) {
+       push(@args, "-t");
+       push(@args, $time);
+   }
+   push(@args,  $dst_path);
    foreach (@files) {
        my $file = " --file-to-restore $_ ";
-       my @args = ("/etc/e-smith/events/actions/restore-data-duplicity");
-       if ($time) {
-           push(@args, "-t");
-           push(@args, $time);
-       }
-       push(@args,  $dst_path);
-       push(@args, @files);
-       system(@args);
+       push(@args, $file);
    }
+   system(@args);
 
    system("/etc/e-smith/events/actions/mount-$VFSType");
 }
