@@ -75,7 +75,7 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
    }
    system(@args);
 
-   system("/etc/e-smith/events/actions/mount-$VFSType");
+   system("/etc/e-smith/events/actions/umount-$VFSType");
 }
 
 exit (0);
