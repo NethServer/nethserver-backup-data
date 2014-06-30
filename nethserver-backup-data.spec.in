@@ -49,6 +49,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Jun 30 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.10-1.ns6
+- Backup data: restore files from a certain time - Enhancement #2749
+- Backup config: minimize creation of new backup - Enhancement #2699
+
 * Wed Feb 26 2014 Davide Principi <davide.principi@nethesis.it> - 1.0.9-1.ns6
 - Backup data: can't install package if backup is in progress - Bug #2667 [NethServer]
 - Backup data: can't restore backup from old chians - Bug #2665 [NethServer]
