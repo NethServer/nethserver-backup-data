@@ -49,6 +49,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Jul 01 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.11-1.ns6
+- Remove modifications for Enhancement #2773
+
 * Mon Jun 30 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.10-1.ns6
 - Backup data: restore files from a certain time - Enhancement #2749
 - Backup config: minimize creation of new backup - Enhancement #2699
