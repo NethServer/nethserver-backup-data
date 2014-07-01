@@ -1,8 +1,0 @@
-#!/bin/bash
-
-out_dir="/var/lib/nethserver/restore"
-day_of_week=`date +%u`
-mkdir -p $out_dir
-/sbin/e-smith/backup-data-list -f > $out_dir/backup-list-$day_of_week
-grep -v -e 'Maildir/.*/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' $out_dir/backup-list-$day_of_week > $out_dir/backup-list-nomail-$day_of_week
-
