@@ -33,6 +33,13 @@ my $notify_to = $backup->prop('notifyTo') || 'admin@localhost';
 my $logFile = $backup->prop('LogFile') || '/var/log/last-backup.log';
 my $status;
 
+$backup = new NethServer::BackupData($notify, $notify_to);
+
+if ($backup->is_running('backup-data')) {
+    print "Another backup is already running.\n";
+    exit 1;
+}
+
 # remove log file
 if ( -e $logFile) {
    unlink($logFile);
@@ -41,7 +48,6 @@ if ( -e $logFile) {
 # Make sure configuration backup is updated
 system('/sbin/e-smith/backup-config');
 
-$backup = new NethServer::BackupData($notify, $notify_to);
 
 $backup->cleanup_notification();
 $backup->notify("===== Report for data backup =====\n");
