@@ -37,7 +37,8 @@ USB Disk
     Select the backup destination to a USB drive. The USB disk must
     be formatted with a compatible file system (ext2/3/4 or FAT, NTFS not supported) and a label configured.
 
-    * Filesystem label: Lists the USB disks connected
+    * Filesystem label: lists connected USB disks.
+      If the disk is mounted, it is marked with an "M".
 
 Windows Share (CIFS)
     Select the backup destination, a Windows share (CIFS). Authentication is required.

@@ -34,6 +34,8 @@ Disco USB
     essere formattato in filesystem supportato (ext2/3/4 o FAT, NTFS non è supportato) ed una label configurata.
 
     * Etichetta filesystem: Vengono elencati i dischi USB collegati
+      Se il disco è montato (occupato), viene marcato con una "M". 
+
 Condivisione Windows (CIFS)
     Seleziona come destinazione del backup una condivisione Windows (CIFS). L'autenticazione è obbligatoria.
 

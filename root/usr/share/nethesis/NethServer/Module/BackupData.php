@@ -94,12 +94,11 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $filesystems = $this->getPlatform()->exec('/usr/bin/hal-find-by-property --key volume.fsusage --string filesystem')->getOutput();
         foreach (explode("\n",$filesystems) as $fs) {
             $mounted = $this->getPlatform()->exec("/usr/bin/hal-get-property --udi $fs --key volume.is_mounted")->getOutput();
-            if ($mounted == 'false') {
-                $label = $this->getPlatform()->exec("hal-get-property --udi $fs --key volume.label")->getOutput();
-                $ret[] = array($label,$label);
-            }
+            $fslabel = $this->getPlatform()->exec("hal-get-property --udi $fs --key volume.label")->getOutput();
+            $label = ($mounted == 'false')?$fslabel:$fslabel.' (M)';
+            $ret[] = array($fslabel,$label);
         }
-        return $ret;    
+        return $ret;
     }
 
     public function prepareView(\Nethgui\View\ViewInterface $view)
