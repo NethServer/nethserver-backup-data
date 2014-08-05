@@ -8,7 +8,7 @@ Source: %{name}-%{version}.tar.gz
 BuildArch: noarch
 BuildRequires: nethserver-devtools
 Requires: cifs-utils, nfs-utils, duplicity
-Requires: nethserver-backup-config >= 1.0.2
+Requires: nethserver-backup-config >= 1.2.0
 AutoReq: no
 
 
