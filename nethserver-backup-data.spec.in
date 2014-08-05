@@ -49,6 +49,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Aug 05 2014 Davide Principi <davide.principi@nethesis.it> - 1.1.0-1.ns6
+- Backup data: avoid multiple sessions - Enhancement #2828 [NethServer]
+
 * Tue Jul 01 2014 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.0.11-1.ns6
 - Remove modifications for Enhancement #2773
 
