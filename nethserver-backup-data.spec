@@ -1,7 +1,7 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
 Version: 1.1.0
-Release: 1
+Release: 1%{?dist}
 License: GPL
 Group: System
 Source: %{name}-%{version}.tar.gz
