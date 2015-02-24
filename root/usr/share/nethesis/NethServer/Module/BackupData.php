@@ -45,7 +45,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
     /**
      * @var Array list of valid cleanup times
      */
-    private $cleanuptypes = array('never','7D','30D','60D');
+    private $cleanuptypes = array('never','7D','14D','28D','56D','168D','364D');
 
 
     protected function initializeAttributes(\Nethgui\Module\ModuleAttributesInterface $base)
