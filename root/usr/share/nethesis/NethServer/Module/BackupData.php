@@ -68,15 +68,15 @@ class BackupData extends \Nethgui\Controller\AbstractController
 
         $this->declareParameter('VFSType', $this->createValidator()->memberOf($this->vfstypes), array('configuration', 'backup-data', 'VFSType'));
         
-        $this->declareParameter('SMBShare', Validate::ANYTHING, array('configuration', 'backup-data', 'SMBShare'));
-        $this->declareParameter('SMBHost', Validate::ANYTHING, array('configuration', 'backup-data', 'SMBHost'));
+        $this->declareParameter('SMBShare', Validate::NOTEMPTY, array('configuration', 'backup-data', 'SMBShare'));
+        $this->declareParameter('SMBHost', Validate::HOSTADDRESS, array('configuration', 'backup-data', 'SMBHost'));
         $this->declareParameter('SMBLogin', Validate::ANYTHING, array('configuration', 'backup-data', 'SMBLogin'));
         $this->declareParameter('SMBPassword', Validate::ANYTHING, array('configuration', 'backup-data', 'SMBPassword'));
 
-        $this->declareParameter('NFSShare', Validate::ANYTHING, array('configuration', 'backup-data', 'NFSShare'));
-        $this->declareParameter('NFSHost', Validate::ANYTHING, array('configuration', 'backup-data', 'NFSHost'));
+        $this->declareParameter('NFSShare', Validate::NOTEMPTY, array('configuration', 'backup-data', 'NFSShare'));
+        $this->declareParameter('NFSHost', Validate::HOSTADDRESS, array('configuration', 'backup-data', 'NFSHost'));
         
-        $this->declareParameter('USBLabel', Validate::ANYTHING, array('configuration', 'backup-data', 'USBLabel'));
+        $this->declareParameter('USBLabel', Validate::NOTEMPTY, array('configuration', 'backup-data', 'USBLabel'));
     
         $this->declareParameter('CleanupOlderThan', $this->createValidator()->memberOf($this->cleanuptypes), array('configuration', 'backup-data', 'CleanupOlderThan'));
 
@@ -87,7 +87,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->getPlatform()->signalEvent('nethserver-backup-data-save@post-process');
     }
 
-    private function listFilesystems()
+    private function listFilesystems(\Nethgui\View\ViewInterface $view)
     {
         $ret = array();
         $ret[] = array(""," --- ");
@@ -95,8 +95,10 @@ class BackupData extends \Nethgui\Controller\AbstractController
         foreach (explode("\n",$filesystems) as $fs) {
             $mounted = $this->getPlatform()->exec("/usr/bin/hal-get-property --udi $fs --key volume.is_mounted")->getOutput();
             $fslabel = $this->getPlatform()->exec("hal-get-property --udi $fs --key volume.label")->getOutput();
-            $label = ($mounted == 'false')?$fslabel:$fslabel.' (M)';
-            $ret[] = array($fslabel,$label);
+            if ($fslabel) {
+                $label = ($mounted == 'false')?$fslabel:$fslabel.' ('.$view->translate('mounted_label').')';
+                $ret[] = array($fslabel,$label);
+            }
         }
         return $ret;
     }
@@ -116,12 +118,24 @@ class BackupData extends \Nethgui\Controller\AbstractController
             return array($fmt, $view->translate($fmt . '_label'));
         }, $this->vfstypes);
 
-        $view['USBLabelDatasource'] = $this->listFilesystems();
+        $view['USBLabelDatasource'] = $this->listFilesystems($view);
         
         $view['CleanupOlderThanDatasource'] = array_map(function($fmt) use ($view) {
             return array($fmt, $view->translate($fmt . '_label'));
         }, $this->cleanuptypes);
     }
+
+    public function validate(\Nethgui\Controller\ValidationReportInterface $report)
+    {
+        if ($this->getRequest()->isMutation()) {
+             $validator = $this->createValidator()->memberOf($this->vfstypes);
+             if ($this->parameters['status'] == 'enabled' && !$validator->evaluate($this->parameters['VFSType'])) {
+                 $report->addValidationError($this, 'VFSType', $validator);
+            }
+        }
+        parent::validate($report);
+    }
+
 
     public function readNotifyToCustom()
     {
