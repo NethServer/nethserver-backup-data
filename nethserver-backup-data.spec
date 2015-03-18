@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.1.1
+Version: 1.1.2
 Release: 1%{?dist}
 License: GPL
 Group: System
@@ -59,6 +59,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Mar 18 2015 Davide Principi <davide.principi@nethesis.it> - 1.1.2-1
+- backup-data fails just after installation - Bug #3004 [NethServer]
+
 * Thu Mar 05 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.1-1
 - backup-data retention policy multiple of 7 - Enhancement #3007 [NethServer]
 
