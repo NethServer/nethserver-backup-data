@@ -7,34 +7,23 @@ Group: System
 Source: %{name}-%{version}.tar.gz
 BuildArch: noarch
 BuildRequires: nethserver-devtools
-BuildRequires: gettext
 Requires: cifs-utils, nfs-utils, duplicity
 Requires: nethserver-backup-config >= 1.2.0
 AutoReq: no
 
-
 %description
 NethServer backup of config and data files
-
-
-%preun
-
-%post
 
 %prep
 %setup
 
 %build
 %{makedocs}
-for D in locale/*/LC_MESSAGES; do
-  [ -d "$D" ] && msgfmt -v $D/%{name}.po -o $D/%{name}.mo
-done
 perl createlinks
 
 # relocate perl modules under default perl vendorlib directory:
 mkdir -p root%{perl_vendorlib}
 mv -v NethServer root%{perl_vendorlib}
-
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -42,17 +31,7 @@ rm -rf $RPM_BUILD_ROOT
 rm -f %{name}-%{version}-%{release}-filelist
 /sbin/e-smith/genfilelist $RPM_BUILD_ROOT > %{name}-%{version}-%{release}-filelist
 
-for F in locale/*/LC_MESSAGES/%{name}.mo; do
-   install -D $F $RPM_BUILD_ROOT/%{_datadir}/$F
-done
-%{find_lang} %{name}
-
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-
-%files -f %{name}-%{version}-%{release}-filelist -f %{name}.lang
+%files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
 %config /etc/backup-data.d/custom.include
 %config /etc/backup-data.d/custom.exclude
