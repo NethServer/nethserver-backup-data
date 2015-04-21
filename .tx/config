@@ -1,0 +1,21 @@
+[main]
+host = https://www.transifex.com
+
+[nethserver.nethserver-backup-datapot]
+source_file = locale/nethserver-backup-data.pot
+source_lang = en
+type = PO
+
+
+[nethserver.Dashboard_SystemStatus_Backup]
+source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_Dashboard_SystemStatus_Backup.php
+source_lang = en
+type = PHP_ALT_ARRAY
+
+
+[nethserver.BackupData]
+source_file = root/usr/share/nethesis/NethServer/Language/en/NethServer_Module_BackupData.php
+source_lang = en
+type = PHP_ALT_ARRAY
+
+
