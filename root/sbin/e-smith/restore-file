@@ -27,7 +27,7 @@ use Getopt::Std;
 
 sub print_help
 {
-    print "Usage $0 [-t <days>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
+    print "Usage $0 [-t <days>] [-h] <target_dir> <file_to_restore> [ ... <file_to_restore>]\n";
     print "  -t : specify the time from which to restore or list files\n";
     print "  -h : show this help\n";
 }
@@ -37,14 +37,14 @@ getopts("ht:", \%options);
 my $help = $options{h};
 my $time = $options{t} || '';
 
-if ($help)
+if ($help || scalar(@ARGV) < 2)
 {
   print_help();
   exit(0);
 }
 
 
-my $dst_path = shift @ARGV || '/';
+my $dst_path = shift @ARGV;
 my @files;
 
 foreach (@ARGV) {
