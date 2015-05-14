@@ -3,13 +3,13 @@ Name: nethserver-backup-data
 Version: 1.1.3
 Release: 1%{?dist}
 License: GPL
-Group: System
 Source: %{name}-%{version}.tar.gz
+URL: %{url_prefix}/%{name}
+
 BuildArch: noarch
 BuildRequires: nethserver-devtools
 Requires: cifs-utils, nfs-utils, duplicity
-Requires: nethserver-backup-config >= 1.2.0
-AutoReq: no
+Requires: nethserver-backup-config
 
 %description
 NethServer backup of config and data files
@@ -26,13 +26,14 @@ mkdir -p root%{perl_vendorlib}
 mv -v NethServer root%{perl_vendorlib}
 
 %install
-rm -rf $RPM_BUILD_ROOT
-(cd root ; find . -depth -print | cpio -dump $RPM_BUILD_ROOT)
-rm -f %{name}-%{version}-%{release}-filelist
-/sbin/e-smith/genfilelist $RPM_BUILD_ROOT > %{name}-%{version}-%{release}-filelist
+rm -rf %{buildroot}
+(cd root ; find . -depth -print | cpio -dump %{buildroot})
+%{genfilelist} %{buildroot} > %{name}-%{version}-%{release}-filelist
 
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
+%doc COPYING
+%dir %{_nseventsdir}/%{name}-update
 %config /etc/backup-data.d/custom.include
 %config /etc/backup-data.d/custom.exclude
 
