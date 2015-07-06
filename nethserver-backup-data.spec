@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.1.3
+Version: 1.1.4
 Release: 1%{?dist}
 License: GPL
 Group: System
@@ -38,6 +38,10 @@ rm -f %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Mon Jul 06 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.4-1
+- Incremental backup fails after domain change - Bug #3174 [NethServer]
+- Backup data: web interface for restore - Enhancement #2773 [NethServer]
+
 * Thu Apr 23 2015 Davide Principi <davide.principi@nethesis.it> - 1.1.3-1
 - Language packs support - Feature #3115 [NethServer]
 
