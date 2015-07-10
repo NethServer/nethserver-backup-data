@@ -60,10 +60,12 @@ sub new
     my $class = shift;
     my $notify = shift || 'error';
     my $notify_to = shift || '';
+    my $notify_from = shift || 'root';
     my $self = {
         _log_file => LOG_FILE,
         _notify => $notify,
         _notify_to => $notify_to,
+        _notify_from => $notify_from,
         _notification_file => NOTIFICATION_FILE,
     };
     $self = bless $self, $class;

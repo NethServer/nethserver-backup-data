@@ -62,6 +62,7 @@ $notification = $view->panel()
         ->insert($view->textInput('notifyToCustom',  $view::LABEL_NONE))
         )
     )
+    ->insert($view->textInput('notifyFrom', 'root'))
 ;
 
 
