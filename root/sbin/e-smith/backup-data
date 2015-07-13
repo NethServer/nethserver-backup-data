@@ -29,7 +29,7 @@ my $backup = $conf->get('backup-data');
 my $program = $backup->prop('Program') || 'duplicity';
 # valid values for notify are: always, error, never
 my $notify = $backup->prop('notify') || 'error';
-my $notify_to = $backup->prop('notifyTo') || 'admin@localhost';
+my $notify_to = $backup->prop('notifyTo') || 'root';
 my $notify_from = $backup->prop('notifyFrom') || 'root';
 my $logFile = $backup->prop('LogFile') || '/var/log/last-backup.log';
 my $status;
