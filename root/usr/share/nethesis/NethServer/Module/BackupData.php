@@ -24,7 +24,7 @@ use Nethgui\System\PlatformInterface as Validate;
 
 
 /**
- * Configure Hylafax and modem
+ * Configure Backup Data
  *
  * @author Giacomo Sanchietti <giacomo.sanchietti@nethesis.it>
  * @since 1.0
@@ -65,6 +65,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->declareParameter('notifyToCustom', Validate::EMAIL, array());
         $this->declareParameter('notifyTo', FALSE, array('configuration', 'backup-data', 'notifyTo')); # not accessibile from UI, position is IMPORTANT
         $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('configuration', 'backup-data', 'notify'));
+        $this->declareParameter('notifyFrom', Validate::EMAIL, array('configuration', 'backup-data', 'notifyFrom'));
 
         $this->declareParameter('VFSType', $this->createValidator()->memberOf($this->vfstypes), array('configuration', 'backup-data', 'VFSType'));
         
