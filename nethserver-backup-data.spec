@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.1.4
+Version: 1.1.5
 Release: 1%{?dist}
 License: GPL
 Group: System
@@ -38,6 +38,10 @@ rm -f %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Wed Jul 15 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.5-1
+- Backup data: defer mount of destination - Enhancement #3222 [NethServer]
+- Backup notification: add sender field - Enhancement #3219 [NethServer]
+
 * Mon Jul 06 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.4-1
 - Incremental backup fails after domain change - Bug #3174 [NethServer]
 - Backup data: web interface for restore - Enhancement #2773 [NethServer]
