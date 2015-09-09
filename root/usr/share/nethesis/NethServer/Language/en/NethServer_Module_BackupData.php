@@ -56,3 +56,4 @@ $L['VFSType_cifs_label'] = 'Windows share (CIFS)';
 $L['VFSType_nfs_label'] = 'NFS share';
 $L['VFSType_usb_label'] = 'USB disk';
 $L['mounted_label'] = 'mounted';
+$L['invalid_pipe_char'] = 'The field can\'t contain a pipe "|" character';

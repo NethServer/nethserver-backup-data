@@ -137,6 +137,9 @@ class BackupData extends \Nethgui\Controller\AbstractController
             if ($this->parameters['status'] == 'enabled' && !$validator->evaluate($this->parameters['VFSType'])) {
                  $report->addValidationError($this, 'VFSType', $validator);
             }
+            if(strpos($this->parameters['SMBPassword'],'|') !== false) {
+                $report->addValidationErrorMessage($this, 'SMBPassword', 'invalid_pipe_char');
+            }
         }
         parent::validate($report);
     }
