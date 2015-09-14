@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.1.5
+Version: 1.1.6
 Release: 1%{?dist}
 License: GPL
 Group: System
@@ -38,6 +38,9 @@ rm -f %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Mon Sep 14 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.6-1
+- Backup data fails if CIFS password contains pipe character - Bug #3249 [NethServer]
+
 * Wed Jul 15 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.5-1
 - Backup data: defer mount of destination - Enhancement #3222 [NethServer]
 - Backup notification: add sender field - Enhancement #3219 [NethServer]
