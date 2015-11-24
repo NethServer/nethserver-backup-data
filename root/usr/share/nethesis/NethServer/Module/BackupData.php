@@ -140,6 +140,9 @@ class BackupData extends \Nethgui\Controller\AbstractController
             if(strpos($this->parameters['SMBPassword'],'|') !== false) {
                 $report->addValidationErrorMessage($this, 'SMBPassword', 'invalid_pipe_char');
             }
+            if ($this->parameters['SMBShare'] && substr($this->parameters['SMBShare'], -1) == '\\') {
+                $report->addValidationErrorMessage($this, 'SMBShare', 'invalid_last_char');
+            }
         }
         parent::validate($report);
     }
