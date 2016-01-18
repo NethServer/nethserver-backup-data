@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.1.3
+Version: 1.1.8
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -39,6 +39,23 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Dec 01 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.8-1
+- Backup data fails if a field contains \ character at the end  - Bug #3311 [NethServer]
+
+* Tue Sep 29 2015 Davide Principi <davide.principi@nethesis.it> - 1.1.7-1
+- Make Italian language pack optional - Enhancement #3265 [NethServer]
+
+* Mon Sep 14 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.6-1
+- Backup data fails if CIFS password contains pipe character - Bug #3249 [NethServer]
+
+* Wed Jul 15 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.5-1
+- Backup data: defer mount of destination - Enhancement #3222 [NethServer]
+- Backup notification: add sender field - Enhancement #3219 [NethServer]
+
+* Mon Jul 06 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.4-1
+- Incremental backup fails after domain change - Bug #3174 [NethServer]
+- Backup data: web interface for restore - Enhancement #2773 [NethServer]
+
 * Thu Apr 23 2015 Davide Principi <davide.principi@nethesis.it> - 1.1.3-1
 - Language packs support - Feature #3115 [NethServer]
 

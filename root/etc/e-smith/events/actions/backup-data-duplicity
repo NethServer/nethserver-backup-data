@@ -42,7 +42,7 @@ my $fullday = $backupwk->prop('FullDay') || 0;
 my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $logFile = $backupwk->prop('LogFile') || '/var/log/last-backup.log';
 my $volSize = $backupwk->prop('VolSize') || '250';
-my $opts = '';
+my $opts = '--allow-source-mismatch';
 my $dst = "";
 my $cacheDir = "/var/lib/nethserver/backup/duplicity/";
 

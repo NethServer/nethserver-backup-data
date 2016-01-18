@@ -24,7 +24,7 @@ use Nethgui\System\PlatformInterface as Validate;
 
 
 /**
- * Configure Hylafax and modem
+ * Configure Backup Data
  *
  * @author Giacomo Sanchietti <giacomo.sanchietti@nethesis.it>
  * @since 1.0
@@ -56,6 +56,10 @@ class BackupData extends \Nethgui\Controller\AbstractController
     public function initialize()
     {
         parent::initialize();
+        $fromValidator = $this->createValidator()->orValidator(
+             $this->createValidator(\Nethgui\System\PlatformInterface::EMPTYSTRING),
+             $this->createValidator(Validate::EMAIL)
+        );
         $this->declareParameter('status', Validate::SERVICESTATUS, array('configuration', 'backup-data', 'status'));
         $this->declareParameter('BackupTime', $this->createValidator()->regexp('/^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])$/'), array('configuration', 'backup-data', 'BackupTime'));
         $this->declareParameter('Type', $this->createValidator()->memberOf(array('full','incremental')), array('configuration', 'backup-data', 'Type'));
@@ -65,6 +69,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->declareParameter('notifyToCustom', Validate::EMAIL, array());
         $this->declareParameter('notifyTo', FALSE, array('configuration', 'backup-data', 'notifyTo')); # not accessibile from UI, position is IMPORTANT
         $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('configuration', 'backup-data', 'notify'));
+        $this->declareParameter('notifyFrom', $fromValidator, array('configuration', 'backup-data', 'notifyFrom'));
 
         $this->declareParameter('VFSType', $this->createValidator()->memberOf($this->vfstypes), array('configuration', 'backup-data', 'VFSType'));
         
@@ -128,9 +133,15 @@ class BackupData extends \Nethgui\Controller\AbstractController
     public function validate(\Nethgui\Controller\ValidationReportInterface $report)
     {
         if ($this->getRequest()->isMutation()) {
-             $validator = $this->createValidator()->memberOf($this->vfstypes);
-             if ($this->parameters['status'] == 'enabled' && !$validator->evaluate($this->parameters['VFSType'])) {
+            $validator = $this->createValidator()->memberOf($this->vfstypes);
+            if ($this->parameters['status'] == 'enabled' && !$validator->evaluate($this->parameters['VFSType'])) {
                  $report->addValidationError($this, 'VFSType', $validator);
+            }
+            if(strpos($this->parameters['SMBPassword'],'|') !== false) {
+                $report->addValidationErrorMessage($this, 'SMBPassword', 'invalid_pipe_char');
+            }
+            if ($this->parameters['SMBShare'] && substr($this->parameters['SMBShare'], -1) == '\\') {
+                $report->addValidationErrorMessage($this, 'SMBShare', 'invalid_last_char');
             }
         }
         parent::validate($report);
