@@ -92,19 +92,48 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->getPlatform()->signalEvent('nethserver-backup-data-save@post-process');
     }
 
+    private function getModel($item) {
+        $label = '';
+        if (isset($item['VENDOR']) && $item['VENDOR']) {
+             $label .= " - ".trim($item['VENDOR']);
+        }
+        if (isset($item['MODEL']) && $item['MODEL']) {
+             $label .= " - ".trim($item['MODEL']);
+        }
+        return $label;
+    }
+
     private function listFilesystems(\Nethgui\View\ViewInterface $view)
     {
         $ret = array();
         $ret[] = array(""," --- ");
-        $filesystems = $this->getPlatform()->exec('/usr/bin/hal-find-by-property --key volume.fsusage --string filesystem')->getOutput();
-        foreach (explode("\n",$filesystems) as $fs) {
-            $mounted = $this->getPlatform()->exec("/usr/bin/hal-get-property --udi $fs --key volume.is_mounted")->getOutput();
-            $fslabel = $this->getPlatform()->exec("hal-get-property --udi $fs --key volume.label")->getOutput();
-            if ($fslabel) {
-                $label = ($mounted == 'false')?$fslabel:$fslabel.' ('.$view->translate('mounted_label').')';
-                $ret[] = array($fslabel,$label);
+        $items = array();
+        $devices = $this->getPlatform()->exec('/usr/bin/lsblk -o NAME,LABEL,MOUNTPOINT,TYPE,VENDOR,MODEL,PKNAME,SIZE -P')->getOutputArray();
+        foreach ($devices as $device) {
+            $r = array();
+            preg_match_all("/([^,= ]+)=\"([^,=]*)\"/", $device, $r);
+            $tmp = array_combine($r[1], $r[2]);
+            $items[$tmp['NAME']] = $tmp;
+        }
+        foreach ($items as $key => $item) {
+            if ($item['TYPE'] != 'rom' && $item['TYPE'] != 'lvm' && $item['LABEL']) {
+                $fslabel = trim($item['LABEL']);
+                $label = $fslabel;
+                if (isset($item['MOUNTPOINT']) && $item['MOUNTPOINT']) {
+                     $label .= ' ('.$item['MOUNTPOINT'].')';
+                }
+                $model = $this->getModel($item);
+                if (!$model) {
+                    $model = $this->getModel($items[$item['PKNAME']]);
+                }
+                $size = '';
+                if (isset($item['SIZE']) && $item['SIZE']) {
+                    $size = " - ".$item['SIZE'];
+                }
+                $ret[] = array($fslabel,$label.$model.$size);
             }
         }
+
         return $ret;
     }
 
