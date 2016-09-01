@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.2.0
+Version: 1.2.1
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Sep 01 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.1-1
+- Missing i18n labels - Bug NethServer/dev#5094
+
 * Thu Jul 07 2016 Stefano Fancello <stefano.fancello@nethesis.it> - 1.2.0-1
 - First NS7 release
 
