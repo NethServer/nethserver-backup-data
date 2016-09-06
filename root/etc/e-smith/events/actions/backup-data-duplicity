@@ -89,7 +89,7 @@ foreach  (@include_data_files) {
 }
 print $tmp "- **\n";
 
-$opts .= " --exclude=$cacheDir --include-globbing-filelist $tmp";
+$opts .= " --exclude=$cacheDir --include-filelist $tmp";
 $opts .= " --volsize $volSize ";
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
