@@ -44,7 +44,7 @@ Windows Share (CIFS)
     Select the backup destination, a Windows share (CIFS). Authentication is required.
 
     * Server: The IP address or FQDN of the target Windows server
-    * Share: the name of the sahre on the target Windows system
+    * Share: the name of the share on the target Windows system
     * User: username to use for authentication
     * Password: password to use for authentication.
 
@@ -54,7 +54,7 @@ NFS Share
 Host
    The IP address or FQDN of the NFS server
 
-   * Share: name the NFS share target
+   * Share: name of the NFS share target
 
 Notifications
 =============
@@ -72,5 +72,5 @@ Send notification to
     Input who will receive the email notification
    
     * System Administrator: notification of the backup will be sent to the system administrator (admin user)
-    * Custom Address: notification of the backup will be sent
+    * Custom Mail Address: notification of the backup will be sent to the specified email address
 
