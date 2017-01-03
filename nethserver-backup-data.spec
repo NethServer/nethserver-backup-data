@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.1.8
+Version: 1.1.9
 Release: 1%{?dist}
 License: GPL
 Group: System
@@ -38,6 +38,9 @@ rm -f %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Tue Jan 03 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.9-1
+- Backup-data not run after system crash - Bug NethServer/dev#5179
+
 * Tue Dec 01 2015 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.8-1
 - Backup data fails if a field contains \ character at the end  - Bug #3311 [NethServer]
 
