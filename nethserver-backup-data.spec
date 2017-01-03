@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.2.2
+Version: 1.2.3
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jan 03 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1
+- Backup-data not run after system crash - Bug NethServer/dev#5179
+
 * Tue Sep 06 2016 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.2-1
 - Backup data: some files not included in backup - Bug NethServer/dev#5101
 
