@@ -35,7 +35,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
     /**
      * @var Array list of valid VFSType
      */
-    private $vfstypes = array('usb','cifs','nfs');
+    private $vfstypes = array('usb','cifs','nfs','webdav');
 
     /**
      * @var Array list of valid notification values
@@ -82,7 +82,11 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->declareParameter('NFSHost', Validate::HOSTADDRESS, array('configuration', 'backup-data', 'NFSHost'));
         
         $this->declareParameter('USBLabel', Validate::NOTEMPTY, array('configuration', 'backup-data', 'USBLabel'));
-    
+
+        $this->declareParameter('WebDAVUrl', Validate::NOTEMPTY, array('configuration', 'backup-data', 'WebDAVUrl'));
+        $this->declareParameter('WebDAVLogin', Validate::ANYTHING, array('configuration', 'backup-data', 'WebDAVLogin'));
+        $this->declareParameter('WebDAVPassword', Validate::ANYTHING, array('configuration', 'backup-data', 'WebDAVPassword'));
+
         $this->declareParameter('CleanupOlderThan', $this->createValidator()->memberOf($this->cleanuptypes), array('configuration', 'backup-data', 'CleanupOlderThan'));
 
     }
@@ -172,6 +176,10 @@ class BackupData extends \Nethgui\Controller\AbstractController
             if ($this->parameters['SMBShare'] && substr($this->parameters['SMBShare'], -1) == '\\') {
                 $report->addValidationErrorMessage($this, 'SMBShare', 'invalid_last_char');
             }
+            if(strpos($this->parameters['WebDAVPassword'],'|') !== false) {
+                $report->addValidationErrorMessage($this, 'WebDAVPassword', 'invalid_pipe_char');
+            }
+
         }
         parent::validate($report);
     }
