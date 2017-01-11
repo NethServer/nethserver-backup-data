@@ -1,0 +1,17 @@
+#
+# 80mount_points
+#
+
+# Mount Points Specific Options
+# -----------------------------
+
+{
+        if ($backup{'Mount'}) {
+                $OUT .= "[" . $backup{'Mount'} . "]\n";
+                $OUT .= "ask_auth\t0\n";
+                $OUT .= "# use_cookies\t1\n";
+                $OUT .= "# use_locks\t0\n";
+        }
+}
+
+
