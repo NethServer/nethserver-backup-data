@@ -46,7 +46,7 @@ my $dst = "";
 
 our $backup = new NethServer::BackupData();
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
    mkdir "$mntdir/$systemname";
    $dst = " file://$mntdir/$systemname ";
 } else {
