@@ -1,0 +1,31 @@
+#
+# 10base
+#
+
+# davfs2 configuration file 2012-07-19
+# version 9
+# ------------------------------------
+
+# Copyright (C) 2006, 2007, 2008, 2009, 2012 Werner Baumann
+
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice
+# and this notice are preserved.
+
+
+# Please read the davfs2.conf (5) man page for a description of the
+# configuration options and syntax rules.
+
+
+# Available options and default values
+# ====================================
+
+# General Options
+# ---------------
+
+# dav_user        davfs2            # system wide config file only
+# dav_group       davfs2            # system wide config file only
+# kernel_fs       fuse
+# buf_size        16                 # KiByte
+
+
