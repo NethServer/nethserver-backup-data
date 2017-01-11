@@ -8,7 +8,7 @@ URL: %{url_prefix}/%{name}
 
 BuildArch: noarch
 BuildRequires: nethserver-devtools
-Requires: cifs-utils, nfs-utils, duplicity
+Requires: cifs-utils, nfs-utils, duplicity, davfs2
 Requires: nethserver-backup-config
 
 %description
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jan 11 2017 Marc (dnutan) - 1.2.3-2
+- WebDAV support
+
 * Tue Jan 03 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1
 - Backup-data not run after system crash - Bug NethServer/dev#5179
 
