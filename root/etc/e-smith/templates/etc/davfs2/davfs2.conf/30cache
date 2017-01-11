@@ -1,0 +1,18 @@
+#
+# 30cache
+#
+
+# Cache Related Options
+# ---------------------
+
+# backup_dir      lost+found
+# cache_dir       /var/cache/davfs2 # system wide cache
+#                 ~/.davfs2/cache   # per user cache
+# cache_size      50                # MiByte
+# table_size      1024
+# dir_refresh     60                # seconds
+# file_refresh    1                 # second
+# delay_upload    10
+# gui_optimize    0
+
+
