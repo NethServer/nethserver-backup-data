@@ -31,6 +31,12 @@ $destination = $view->panel()
         ->insert($view->textInput('NFSHost'))
         ->insert($view->textInput('NFSShare'))
     )
+
+    ->insert($view->fieldsetSwitch('VFSType', 'webdav',$view::FIELDSETSWITCH_EXPANDABLE)
+        ->insert($view->textInput('WebDAVUrl'))
+        ->insert($view->textInput('WebDAVLogin'))
+        ->insert($view->textInput('WebDAVPassword'))
+    )             
     )
 ;
 
