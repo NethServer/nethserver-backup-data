@@ -1,0 +1,11 @@
+#
+# 40debug
+#
+
+# Debugging Options
+# -----------------
+
+# debug           # possible values: config, kernel, cache, http, xml,
+                  #      httpauth, locks, ssl, httpbody, secrets, most
+
+
