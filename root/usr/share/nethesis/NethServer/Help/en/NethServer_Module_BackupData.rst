@@ -6,9 +6,9 @@ The backup contains all the data such as users home directories,
 shared folders, emails but also all the configurations
 of the system. It runs daily and may be full or
 incremental, depending on day of week and configuration. The
-media available for backup are: USB disk, Windows share
-and NFS share. At the end of the backup procedure, an email notification will be sent
-to the administrator or to a custom address.
+media available for backup are: USB disk, Windows share, NFS share
+and WebDAV share. At the end of the backup procedure, an email notification
+will be sent to the administrator or to a custom address.
 
 General
 ========
@@ -55,6 +55,14 @@ Host
    The IP address or FQDN of the NFS server
 
    * Share: name of the NFS share target
+
+WebDAV Share
+    Select the backup destination, a WebDAV share. Authentication is required.
+
+    * Server: The WebDAV URL of the target server share
+    * User: username to use for authentication
+    * Password: password to use for authentication.
+
 
 Notifications
 =============
