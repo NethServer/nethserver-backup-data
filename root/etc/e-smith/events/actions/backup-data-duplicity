@@ -107,7 +107,7 @@ $opts .= " --no-encryption ";
 # set duplicity cache dir
 $opts .= " --archive-dir $cacheDir ";
 
-# remove stale duplicyty lockfile
+# remove stale duplicity lockfile
 unlink glob "$cacheDir/*/lockfile.lock";
 
 # Debug 
