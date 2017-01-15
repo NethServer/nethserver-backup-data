@@ -1,9 +1,6 @@
 #
-# 80mount_points
+# 80backup_mount_point
 #
-
-# Mount Points Specific Options
-# -----------------------------
 
 {
         if ($backup{'Mount'}) {
