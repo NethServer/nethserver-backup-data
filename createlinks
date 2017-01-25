@@ -69,6 +69,7 @@ event_actions($event,
 $event = "post-backup-data";
 event_actions($event, 
    'cleanup-data-duplicity' => '70',
+   'disk-usage' => '70',
    'umount-usb' => '80',
    'umount-cifs' => '80',
    'umount-nfs' => '80',
