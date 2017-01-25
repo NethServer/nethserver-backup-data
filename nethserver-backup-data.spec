@@ -39,8 +39,6 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Wed Jan 11 2017 Marc (dnutan) - 1.2.3-2
-- WebDAV support (unofficial pre-release)
 
 * Tue Jan 03 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1
 - Backup-data not run after system crash - Bug NethServer/dev#5179
