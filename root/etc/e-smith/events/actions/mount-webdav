@@ -59,7 +59,7 @@ if (!$b->is_mounted("$webdavurl") && !$b->is_mounted($mntdir)) {
     $err = qx(/bin/mount -t davfs "$webdavurl" $mntdir 2>&1);
     if ($err) {
         $err =~s/\n/ /g;
-        # workaround: do not fail on minor warnings (eg. mtab write). To be deprecated on future davfs2 releases.
+        # workaround: do not fail on minor warnings (e.g. mtab write). Future upstream davfs2 releases will make this unnecessary.
         if ($err !~m/warning/i) {
           ldie("Error while mounting $webdavurl : " . $err);
         }
