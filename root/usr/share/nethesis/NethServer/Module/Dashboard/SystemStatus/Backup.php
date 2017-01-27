@@ -60,6 +60,21 @@ class Backup extends \Nethgui\Controller\AbstractController
         $backup['type'] = $br['Type'];
         $backup['time'] = $br['BackupTime'];
 
+        $log = "/var/lib/nethserver/backup/disk_usage";
+        if (file_exists($log)) {
+            $file = file_get_contents("$log");
+            if ($du = json_decode($file, true)) {
+                //( is_numeric($du['size']) && $du['size'] >= 0 ) ? $backup['size'] = $du['size'] : '';
+                //( is_numeric($du['used']) && $du['used'] >= 0 ) ? $backup['used'] = $du['used'] : '';
+                //( is_numeric($du['avail']) && $du['avail'] >= 0 ) ? $backup['avail'] = $du['avail'] : '';
+                if ( is_numeric($du['size']) && $du['size'] >= 0 &&
+                     is_numeric($du['used']) && $du['used'] >= 0 &&
+                     is_numeric($du['avail']) && $du['avail'] >= 0 ) {
+                        $backup = array_merge($backup, $du);
+                }
+            }
+        }
+
         return $backup;
     }
 
