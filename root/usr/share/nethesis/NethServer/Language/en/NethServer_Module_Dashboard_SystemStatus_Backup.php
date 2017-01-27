@@ -19,3 +19,7 @@ $L['ERROR'] = 'ERROR';
 $L['START'] = 'START';
 $L['backup_not_configured'] = 'Backup not configured';
 $L['last_backup'] = 'Last backup';
+$L['usage_label'] = 'Storage Usage';
+$L['avail_label'] = 'Storage Available';
+$L['storage_stats'] = 'Storage Stats';
+$L['unknown'] =	'Unknown';
