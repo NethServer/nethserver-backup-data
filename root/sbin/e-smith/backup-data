@@ -92,9 +92,9 @@ $backup->notify("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60
 if ( open(FILE, "<$duLogFile") ) {
     %du = %{decode_json(join('', <FILE>))};
     close(FILE);
-    if ($du{'size'}) {format_bytes($du{'size'}*1024);}
-    if ($du{'used'}) {format_bytes($du{'used'}*1024);}
-    if ($du{'avail'}) {format_bytes($du{'avail'}*1024);}
+    if ($du{'size'}) { $du{'size'} = format_bytes($du{'size'}*1024); }
+    if ($du{'used'}) { $du{'used'} = format_bytes($du{'used'}*1024); }
+    if ($du{'avail'}) { $du{'avail'} = format_bytes($du{'avail'}*1024); }
 } else {
     warn("[WARNING] Could not open $duLogFile\n");
 }
