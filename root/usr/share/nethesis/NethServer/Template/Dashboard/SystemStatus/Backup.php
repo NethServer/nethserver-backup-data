@@ -30,7 +30,7 @@ if (!$view['backup_status']['vfs']) {
         echo "<dt>".$T('avail_label')."</dt><dd>".formatSize($view['backup_avail']*1024)."</dd>";
         echo "<div id='backup_plot' value='{$view['backup_used']}' max='{$view['backup_size']}'><div id='backup_label' class='progress-label'></div></div>";
     } else {
-	    echo "<dt>$T('storage_stats')</dt><dd>$T('unknown')</dd>";
+	    echo "<dt>".$T('storage_stats')."</dt><dd>".$T('unknown')."</dd>";
     }
     echo "</dl>";
 }
