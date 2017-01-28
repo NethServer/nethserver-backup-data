@@ -43,6 +43,7 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFS
         # get disk usage stats
         if ( @du{qw(source size used avail pcent target)} = split(" ", `/bin/df -P "$mntdir" 2>/dev/null | grep "$mntdir"`) ) {
             delete @du{'source', 'target'};
+            $du{'pcent'} = sprintf "%.2f", $du{'used'}/$du{'size'}*100;
 
             if ( $du{'used'} lt 0 || $du{'avail'} lt 0 ) {
                 warn("[WARNING] Unable to determine backup storage capacity.\n");
