@@ -35,7 +35,7 @@ $destination = $view->panel()
     ->insert($view->fieldsetSwitch('VFSType', 'webdav',$view::FIELDSETSWITCH_EXPANDABLE)
         ->insert($view->textInput('WebDAVUrl'))
         ->insert($view->textInput('WebDAVLogin'))
-        ->insert($view->textInput('WebDAVPassword'))
+        ->insert($view->textInput('WebDAVPassword'), $view::TEXTINPUT_PASSWORD)
     )             
     )
 ;
