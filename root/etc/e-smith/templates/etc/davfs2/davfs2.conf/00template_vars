@@ -1,0 +1,5 @@
+{
+  %backup = $DB->get('backup-data')->props;
+  $OUT = '';
+  ''; # expand to an empty string
+}

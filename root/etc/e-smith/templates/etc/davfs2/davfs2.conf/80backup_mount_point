@@ -1,0 +1,16 @@
+#
+# 80backup_mount_point
+#
+
+{
+        if ($backup{'Mount'}) {
+                $OUT .= "[" . $backup{'Mount'} . "]\n";
+                $OUT .= "ask_auth\t0\n";
+                $OUT .= "# allow_cookie\t1\n";
+                $OUT .= "# use_locks\t0\n";
+                $OUT .= "# use_expect100\t1\n";
+                $OUT .= "# if_match_bug\t1\n";
+        }
+}
+
+

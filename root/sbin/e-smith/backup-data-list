@@ -43,7 +43,7 @@ my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
    system("/etc/e-smith/events/actions/mount-$VFSType");
 
    if ($formatted) {

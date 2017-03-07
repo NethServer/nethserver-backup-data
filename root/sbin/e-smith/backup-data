@@ -23,6 +23,7 @@ use strict;
 use esmith::ConfigDB;
 use NethServer::BackupData;
 use POSIX qw/strftime/;
+use JSON;
 
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 my $backup = $conf->get('backup-data');
@@ -33,6 +34,8 @@ my $notify_to = $backup->prop('notifyTo') || 'root';
 my $notify_from = $backup->prop('notifyFrom') || 'root';
 my $logFile = $backup->prop('LogFile') || '/var/log/last-backup.log';
 my $status;
+my %du;
+my $duLogFile = '/var/lib/nethserver/backup/disk_usage';
 
 $backup = new NethServer::BackupData($notify, $notify_to, $notify_from);
 
@@ -85,7 +88,37 @@ $backup->notify("Backup ended at %s", strftime('%F %T',localtime));
 my $duration = time - $start;
 $backup->notify("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
 
+# disk usage stats
+if ( open(FILE, "<$duLogFile") ) {
+    %du = %{decode_json(join('', <FILE>))};
+    close(FILE);
+    if ($du{'size'}) { $du{'size'} = format_bytes($du{'size'}*1024); }
+    if ($du{'used'}) { $du{'used'} = format_bytes($du{'used'}*1024); }
+    if ($du{'avail'}) { $du{'avail'} = format_bytes($du{'avail'}*1024); }
+    if ($du{'pcent'}) { $du{'pcent'} .= '%'; }
+} else {
+    warn("[WARNING] Could not open $duLogFile\n");
+}
+$backup->notify("\nDisk Usage:\n%10s %10s %10s %8s", 'Size', 'Used', 'Available', 'Use%');
+$backup->notify("%10s %10s %10s %8s", $du{'size'}||'-', $du{'used'}||'-', $du{'avail'}||'-', $du{'pcent'}||'-');
+
+
 $backup->send_notification(0,$logFile);
 
 
 exit 0;
+
+sub format_bytes {
+    my $size = shift;
+    my $exp = 0;
+
+    CORE::state $units = [qw(B KB MB GB TB PB EB ZB YB)];
+
+    for (@$units) {
+        last if $size < 1024;
+        $size /= 1024;
+        $exp++;
+    }
+
+    return wantarray ? ($size, $units->[$exp]) : sprintf("%.2f %s", $size, $units->[$exp]);
+}

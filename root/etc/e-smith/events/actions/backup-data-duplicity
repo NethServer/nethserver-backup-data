@@ -92,7 +92,7 @@ print $tmp "- **\n";
 $opts .= " --exclude=$cacheDir --include-filelist $tmp";
 $opts .= " --volsize $volSize ";
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
    mkdir "$mntdir/$systemname";
    $dst = " file://$mntdir/$systemname ";
 } else {
@@ -107,7 +107,7 @@ $opts .= " --no-encryption ";
 # set duplicity cache dir
 $opts .= " --archive-dir $cacheDir ";
 
-# remove stale duplicyty lockfile
+# remove stale duplicity lockfile
 unlink glob "$cacheDir/*/lockfile.lock";
 
 # Debug 

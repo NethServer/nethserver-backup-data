@@ -60,7 +60,7 @@ my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
    system("/etc/e-smith/events/actions/mount-$VFSType");
 
    my @args = ("/etc/e-smith/events/actions/restore-data-duplicity");

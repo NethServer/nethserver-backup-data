@@ -69,7 +69,7 @@ my $backup = new NethServer::BackupData();
 $backup->set_log_file('/var/log/restore-data.log');
 
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') ) {
+if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
    $src = " file://$mntdir/$systemname ";
 } else {
    $backup->bad_exit("No valid VFSType ($VFSType)",1);

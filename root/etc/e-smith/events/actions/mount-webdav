@@ -1,0 +1,83 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2017 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+#
+# Original work:
+# copyright (C) 2006-2007 Jean-Paul Leclere <jean-paul@leclere.org>
+# copyright (C) 2007 Charlie Brady <charlieb@e-smith.com>
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use Errno;
+use File::Temp;
+use esmith::ConfigDB;
+use NethServer::BackupData();
+use File::Path qw(make_path);
+
+sub ldie;
+
+my $confdb = esmith::ConfigDB->open;
+my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+my $webdavurl = $backupwk->prop('WebDAVUrl');
+my $login = $backupwk->prop('WebDAVLogin');
+my $password = $backupwk->prop('WebDAVPassword');
+my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
+our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+my $err = 0;
+my $mntdone = 0;
+
+exit 0 unless ($VFSType eq 'webdav');
+
+our $b = new NethServer::BackupData();
+
+# creating mount directory
+if ( ! -d $mntdir ) {
+    make_path($mntdir);
+}
+
+# mounting backup directory if not already mounted
+if (!$b->is_mounted("$webdavurl") && !$b->is_mounted($mntdir)) {
+
+    # mount the backup dir
+    $err = qx(/bin/mount -t davfs "$webdavurl" $mntdir 2>&1);
+    if ($err) {
+        $err =~s/\n/ /g;
+        # workaround: do not fail on minor warnings (e.g. mtab write). Future upstream davfs2 releases will make this unnecessary.
+        if ($err !~m/warning/i) {
+          ldie("Error while mounting $webdavurl : " . $err);
+        }
+        warn($err);
+    }
+}
+
+$mntdone = 1;
+
+# verify $mntdir has an entry in /proc/mounts
+
+if (!$b->is_mounted($mntdir)) {
+    ldie("Backup directory is not mounted");
+}
+
+sub ldie 
+{
+    my $errmsg = shift;
+    system("/bin/umount", "$mntdir") if $mntdone;
+    $b->bad_exit($errmsg);
+}
