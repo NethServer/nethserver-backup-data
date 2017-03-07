@@ -170,17 +170,23 @@ class BackupData extends \Nethgui\Controller\AbstractController
             if ($this->parameters['status'] == 'enabled' && !$validator->evaluate($this->parameters['VFSType'])) {
                  $report->addValidationError($this, 'VFSType', $validator);
             }
-            if (strpos($this->parameters['SMBPassword'],'|') !== false) {
-                $report->addValidationErrorMessage($this, 'SMBPassword', 'invalid_pipe_char');
-            }
-            if ($this->parameters['SMBShare'] && substr($this->parameters['SMBShare'], -1) == '\\') {
-                $report->addValidationErrorMessage($this, 'SMBShare', 'invalid_last_char');
-            }
-            if (strpos($this->parameters['WebDAVPassword'],'|') !== false) {
-                $report->addValidationErrorMessage($this, 'WebDAVPassword', 'invalid_pipe_char');
-            }
-            if ( ! filter_var($this->parameters['WebDAVUrl'], FILTER_VALIDATE_URL) ) {
-                $report->addValidationErrorMessage($this, 'WebDAVUrl', 'invalid_url');
+            switch ($this->parameters{'VFSType'}) {
+                case 'cifs':
+                    if (strpos($this->parameters['SMBPassword'],'|') !== false) {
+                        $report->addValidationErrorMessage($this, 'SMBPassword', 'invalid_pipe_char');
+                    }
+                    if ($this->parameters['SMBShare'] && substr($this->parameters['SMBShare'], -1) == '\\') {
+                        $report->addValidationErrorMessage($this, 'SMBShare', 'invalid_last_char');
+                    }
+                    break;
+                case 'webdav':
+                    if (strpos($this->parameters['WebDAVPassword'],'|') !== false) {
+                        $report->addValidationErrorMessage($this, 'WebDAVPassword', 'invalid_pipe_char');
+                    }
+                    if ( ! filter_var($this->parameters['WebDAVUrl'], FILTER_VALIDATE_URL) ) {
+                        $report->addValidationErrorMessage($this, 'WebDAVUrl', 'invalid_url');
+                    }
+                    break;
             }
         }
         parent::validate($report);
