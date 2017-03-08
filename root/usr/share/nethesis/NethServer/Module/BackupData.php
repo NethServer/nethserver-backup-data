@@ -187,6 +187,8 @@ class BackupData extends \Nethgui\Controller\AbstractController
                         $report->addValidationErrorMessage($this, 'WebDAVUrl', 'invalid_url');
                     }
                     break;
+                default:
+                    // do nothing
             }
         }
         parent::validate($report);
