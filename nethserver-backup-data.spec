@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.2.3
+Version: 1.3.0
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Apr 12 2017 Davide Principi <davide.principi@nethesis.it> - 1.3.0-1
+- Backup data: basic webDAV support for backups and storage stats - NethServer/dev#5235
+
 
 * Tue Jan 03 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1
 - Backup-data not run after system crash - Bug NethServer/dev#5179
