@@ -1,2 +1,3 @@
 /var/lib/nethserver/backup/duplicity/
 /var/lib/nethserver/db
+/root/.ssh
