@@ -49,10 +49,6 @@ if ( -e $logFile) {
    unlink($logFile);
 }
 
-# Make sure configuration backup is updated
-system('/sbin/e-smith/backup-config');
-
-
 $backup->cleanup_notification();
 $backup->notify("===== Report for data backup =====\n");
 
