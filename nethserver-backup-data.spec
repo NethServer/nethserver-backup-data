@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.3.1
+Version: 1.3.2
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 12 2017 Davide Principi <davide.principi@nethesis.it> - 1.3.2-1
+- Backup config history - NethServer/dev#5314
+
 * Thu Apr 20 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.1-1
 - Backup-data: remove .ssh directory from backup - Bug NethServer/dev#5269
 
