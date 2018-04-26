@@ -1,0 +1,6 @@
+{
+    $includeLogs = ${'backup-data'}{IncludeLogs} || 'disabled';
+    if ($includeLogs eq 'enabled') {
+        $OUT = "/var/log/";
+    }
+}

@@ -88,6 +88,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $this->declareParameter('WebDAVPassword', Validate::ANYTHING, array('configuration', 'backup-data', 'WebDAVPassword'));
 
         $this->declareParameter('CleanupOlderThan', $this->createValidator()->memberOf($this->cleanuptypes), array('configuration', 'backup-data', 'CleanupOlderThan'));
+        $this->declareParameter('IncludeLogs', Validate::SERVICESTATUS, array('configuration', 'backup-data', 'IncludeLogs'));
 
     }
 

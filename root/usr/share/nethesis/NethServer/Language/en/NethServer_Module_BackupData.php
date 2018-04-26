@@ -64,3 +64,5 @@ $L['webdav_label'] = 'WebDAV';
 $L['WebDAVUrl_label'] = 'Server';
 $L['WebDAVLogin_label'] = 'Username';
 $L['WebDAVPassword_label'] = 'Password';
+$L['Advanced_label'] = 'Advanced options';
+$L['IncludeLogs_label'] = 'Include system logs';

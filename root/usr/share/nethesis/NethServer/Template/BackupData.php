@@ -14,6 +14,10 @@ $retention = $view->panel()
                  ->insert($view->fieldset()->setAttribute('template',$T('RetentionPolicy_label'))
                      ->insert($view->selector('CleanupOlderThan', $view::SELECTOR_DROPDOWN))
                   );
+$advanced = $view->panel()
+                 ->insert($view->fieldset()->setAttribute('template',$T('Advanced_label'))
+                     ->insert($view->checkbox('IncludeLogs', 'enabled')->setAttribute('uncheckedValue', 'disabled'))
+                  );
 
 $destination = $view->panel()
     ->setAttribute('title', $T('BackupData_Destination_Title'))
@@ -50,6 +54,7 @@ $general = $view->panel()
             ->insert($destination)
             ->insert($type)
             ->insert($retention)
+            ->insert($advanced)
         )
      )
 ;
