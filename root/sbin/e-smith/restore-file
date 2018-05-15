@@ -70,7 +70,6 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFS
    }
    push(@args,  $dst_path);
    foreach (@files) {
-       push(@args, '--file-to-restore');
        push(@args, $_);
    }
    system(@args);
