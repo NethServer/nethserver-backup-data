@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.3.3
+Version: 1.3.4
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -39,6 +39,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 16 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.4-1
+- Backup data: restore-file tries to restore non-exiting file - Bug NethServer/dev#5496
+
 * Fri Apr 27 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.3.3-1
 - Backup data: include log files - NethServer/dev#5470
 
