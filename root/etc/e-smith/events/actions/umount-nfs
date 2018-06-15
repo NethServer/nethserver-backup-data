@@ -25,12 +25,25 @@ use Errno;
 use esmith::ConfigDB;
 use NethServer::BackupData;
 
+# The action can be invoked from post-backup-data event or directly from a script.
+# If invoked from a script, just pass the name of the backup.
+my $name = shift || '';
+
+my $backupwk;
+my $mntdir;
 my $confdb = esmith::ConfigDB->open;
-my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+if ($name eq 'post-backup-data' || $name eq 'post-restore-data' || $name eq '') {
+   $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
+   $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backupwk = $db->get($name) || die("No backup '$name' found");
+   $mntdir = "/mnt/backup-$name";
+}
+
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $nfshost = $backupwk->prop('NFSHost');
 my $nfsshare = $backupwk->prop('NFSShare');
-my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 
 exit 0 unless ($VFSType eq 'nfs');

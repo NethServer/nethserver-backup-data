@@ -22,34 +22,82 @@
 use strict;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
+use Getopt::Std;
 
-my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
-my $backup = $conf->get('backup-data');
-my $program = $backup->prop('Program') || 'duplicity';
+use constant DEBUG => 0;
+
+sub print_help
+{
+    print "Usage $0 [-b <backup_name>] [-h]\n";
+    print "  -b : specify the name of backup to restore\n";
+    print "  -h : show this help\n";
+}
+
+my %options=();
+getopts("hb:", \%options);
+my $help = $options{h};
+my $name = $options{b} || '';
+
+if ($help)
+{
+  print_help();
+  exit(0);
+}
+
+my $backup;
+my $program;
+my $restore_action;
 my $status;
+my $logFile;
+my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
+if ($name eq '') {
+   $backup = $conf->get('backup-data');
+   $program = $backup->prop('Program') || 'duplicity';
+   $logFile = '/var/log/restore-data.log';
+   $restore_action = "/etc/e-smith/events/actions/restore-data-$program"; 
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backup = $db->get($name) || die("No backup '$name' found");
+   $program = $backup->prop('type') || 'duplicity';
+   $restore_action = "/etc/e-smith/events/actions/restore-data-$program -b $name";
+   $logFile = "/var/log/restore-data-$name.log";
+}
 
 $backup = new NethServer::BackupConfig();
-$backup->set_log_file("/var/log/restore-data.log");
+$backup->set_log_file($logFile);
 
 $backup->logger("START","Restore data started");
 
 if ($status = system(qw(/sbin/e-smith/signal-event pre-restore-data)))
 {
+    debug("Event pre-restore-data failed");
     $backup->bad_exit("Event pre-restore-data failed", $status);
 }
+debug("Event pre-restore-data ok");
 $backup->logger("STEP","pre-restore-data done");
 
-if ($status = system("/etc/e-smith/events/actions/restore-data-$program"))
+debug("Executing '$restore_action'");
+if ($status = system($restore_action))
 {
+    debug("Action '$restore_action' failed");
     $backup->bad_exit("Action restore-data-$program failed", $status);
 }
+debug("Action '$restore_action' ok");
 $backup->logger("STEP","restore-data-$program done");
 
 if ($status = system(qw(/sbin/e-smith/signal-event post-restore-data)))
 {
+    debug("Event poist-restore-data failed");
     $backup->bad_exit("Event post-restore-data failed", $status);
 }
 
+debug("Event post-restore-data ok");
 $backup->logger("SUCCESS","Restore data done");
 
 exit 0;
+
+sub debug {
+   my $msg = shift;
+   print "[DEBUG] $msg\n" if (DEBUG);
+}
+

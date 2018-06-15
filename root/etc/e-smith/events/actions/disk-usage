@@ -30,6 +30,7 @@ my $confdb = esmith::ConfigDB->open;
 my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+my $status = $backupwk->prop('status') || 'disabled';
 my $duLogFile = '/var/lib/nethserver/backup/disk_usage';
 my $err = 0;
 my %du;
@@ -37,7 +38,7 @@ my %du;
 my $backup = new NethServer::BackupData();
 
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
+if ( $status eq 'enabled' && -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
     if ($backup->is_mounted($mntdir)) {
 
         # get disk usage stats
@@ -57,9 +58,6 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFS
             close(FILE);
         }
     }
-} else {
-   $backup->logger("ERROR","No valid VFSType ($VFSType) - 1");
-   exit 1;
 }
 
 exit 0;

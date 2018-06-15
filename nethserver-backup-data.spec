@@ -10,6 +10,7 @@ BuildArch: noarch
 BuildRequires: nethserver-devtools
 Requires: cifs-utils, nfs-utils, duplicity, davfs2
 Requires: nethserver-backup-config
+Requires: sshpass
 
 %description
 NethServer backup of config and data files
@@ -23,6 +24,9 @@ perl createlinks
 
 # relocate perl modules under default perl vendorlib directory:
 mkdir -p root%{perl_vendorlib}
+mkdir -p root/etc/backup-data
+mkdir -p root/var/log/backup
+mkdir -p root/var/spool/backup
 mv -v NethServer root%{perl_vendorlib}
 
 %install
@@ -34,6 +38,10 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %doc COPYING
 %dir %{_nseventsdir}/%{name}-update
+%dir /var/log/backup
+%dir /var/spool/backup
+%dir /etc/backup-data
+%dir /etc/backup-data.hooks
 %config /etc/backup-data.d/custom.include
 %config /etc/backup-data.d/custom.exclude
 
