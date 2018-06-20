@@ -1,0 +1,152 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::ConfigDB;
+use NethServer::BackupData;
+use NethServer::BackupConfig;
+use File::Path  qw(make_path);
+use File::Basename;
+use Getopt::Std;
+
+sub print_help
+{
+    print "Usage $0 [-t <days>] [-b <backup_name>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
+    print "  -t : specify the snapshot from which to restore or list files\n";
+    print "  -b : specify the name of backup to restore\n";
+    print "  -h : show this help\n";
+}
+
+my %options=();
+getopts("ht:b:", \%options);
+my $help = $options{h};
+my $time = $options{t} || 'latest';
+my $name = $options{b} || '';
+
+if ($help)
+{
+  print_help();
+  exit(0);
+}
+
+use constant CMD => '/usr/bin/restic';
+
+my $position = shift @ARGV || '/';
+my @files = @ARGV;
+
+my $record;
+my $logFile; # restic output
+my $restic_repository;
+my $confdb = esmith::ConfigDB->open;
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
+
+if ($name eq '') {
+   $record = $confdb->get('backup-data');
+   $logFile = '/var/log/restore.log';
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $record = $db->get($name) || die("No backup '$name' found");
+   $logFile = "/var/log/restore-$name.log";
+}
+
+
+my $type = $record->prop('Type') || 'full';
+my $forceFull = $record->prop('ForceFull') || 'enabled';
+my $VFSType = $record->prop('VFSType') || 'UNKNOWN';
+my $mntdir = $record->prop('Mount') || '/mnt/backup';
+my $opts = " --cache-dir /var/lib/nethserver/backup/restic/$name --password-file /var/lib/nethserver/secrets/restic_$name";
+my $src = "";
+
+my $backup = new NethServer::BackupData();
+$backup->set_log_file($logFile);
+
+if ( -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
+    # Local filesystem, just mount it
+    system("/etc/e-smith/events/actions/mount-$VFSType $name");
+    $restic_repository = "/mnt/backup-$name/$name/"
+} else {
+    # Remote destination
+    if ($VFSType eq 'sftp') {
+        my $host = $record->prop('SftpHost');
+        my $user = $record->prop('SftpUser');
+        my $dir = $record->prop('SftpDirectory');
+        $restic_repository = "sftp:$user\@$host:$dir";
+    } elsif ($VFSType eq 's3') {
+        my $host = $record->prop('S3Host');
+        my $access = $record->prop('S3AccessKey');
+        my $secret = $record->prop('S3SecretKey');
+        my $bucket = $record->prop('S3Bucket');
+        $ENV{AWS_ACCESS_KEY_ID} = $access;
+        $ENV{AWS_SECRET_ACCESS_KEY} = $secret;
+        $restic_repository = "s3:$host/$bucket";
+    } elsif ($VFSType eq 'b2') {
+        my $account = $record->prop('B2AccountId');
+        my $key = $record->prop('B2AccountKey');
+        my $bucket = $record->prop('B2Bucket');
+        $ENV{B2_ACCOUNT_ID} = $account;
+        $ENV{B2_ACCOUNT_KEY} = $key;
+        $restic_repository = "b2:$bucket:/$systemname";
+    } elsif ($VFSType eq 'rest') {
+        my $host = $record->prop('RestHost');
+        my $port = $record->prop('RestPort');
+        my $user = $record->prop('RestUser') || '';
+        my $password = $record->prop('RestPassword') || '';
+        my $protocol = $record->prop('RestProtocol');
+        my $dir = $record->prop('RestDirectory');
+        my $auth = '';
+        if ($user ne '' && $password ne '') {
+           $auth = "$user:$password@";
+        }
+        $restic_repository = "rest:$protocol://$auth$host:$port/$dir"
+    } else {
+        $backup->bad_exit("No valid VFSType ($VFSType)",1);
+    }
+}
+
+$opts .= " --repo $restic_repository";
+
+# add log file
+if ( -e $logFile) {
+   unlink($logFile);
+}
+
+my $cmd = CMD." $opts restore $time --target $position ";
+
+if (@files) {  # restore selected files
+    foreach (@files) {
+        $cmd .= " --path '$_' "
+    } 
+}
+
+my $ret = system("$cmd &>>$logFile");
+
+if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+   system("/etc/e-smith/events/actions/umount-$VFSType $name");
+}
+
+if ($ret != 0) {
+   $backup->bad_exit("Restore failed, see $logFile for details",$ret); 
+}
+
+exit (0);
+
