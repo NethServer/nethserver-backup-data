@@ -30,6 +30,11 @@ NethServer backup data using restic
 %build
 perl createlinks
 
+# relocate perl modules under default perl vendorlib directory:
+mkdir -p root%{perl_vendorlib}
+mv -v NethServer root%{perl_vendorlib}
+
+
 %install
 rm -rf %{buildroot}
 (cd root; find . -depth -print | cpio -dump %{buildroot})
