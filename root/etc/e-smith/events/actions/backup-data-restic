@@ -25,6 +25,7 @@ use esmith::ConfigDB;
 use File::Temp;
 use NethServer::BackupData;
 use NethServer::Password;
+use NethServer::Restic;
 
 use constant CMD => '/usr/bin/restic';
 
@@ -34,7 +35,6 @@ my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
-my $restic_repository;
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
 my $record = $db->get($name) || die("No backup '$name' found");
 my $logFile = "/var/log/last-backup-$name.log";
@@ -42,49 +42,13 @@ my $restic_password = NethServer::Password::store("restic_$name");
 
 my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
 my $cleanup = lc($record->prop('CleanupOlderThan')) || 'never';
-my $opts = " --cache-dir /var/lib/nethserver/backup/restic/$name --password-file /var/lib/nethserver/secrets/restic_$name";
+my $opts = NethServer::Restic::initOptions($name);
+my $restic_repository = NethServer::Restic::prepareRepository($systemname, $record);
+our $backup = new NethServer::BackupData($name);
 
-if ( -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
-    # Local filesystem, just mount it
-    system("/etc/e-smith/events/actions/mount-$VFSType $name");
-    $restic_repository = "/mnt/backup-$name/$name/"
-} else {
-    # Remote destination
-    if ($VFSType eq 'sftp') {
-        my $host = $record->prop('SftpHost');
-        my $user = $record->prop('SftpUser');
-        my $dir = $record->prop('SftpDirectory');
-        $restic_repository = "sftp:$user\@$host:$dir";
-    } elsif ($VFSType eq 's3') {
-        my $host = $record->prop('S3Host');
-        my $access = $record->prop('S3AccessKey');
-        my $secret = $record->prop('S3SecretKey');
-        my $bucket = $record->prop('S3Bucket');
-        $ENV{AWS_ACCESS_KEY_ID} = $access;
-        $ENV{AWS_SECRET_ACCESS_KEY} = $secret;
-        $restic_repository = "s3:$host/$bucket";
-    } elsif ($VFSType eq 'b2') {
-        my $account = $record->prop('B2AccountId');
-        my $key = $record->prop('B2AccountKey');
-        my $bucket = $record->prop('B2Bucket');
-        $ENV{B2_ACCOUNT_ID} = $account;
-        $ENV{B2_ACCOUNT_KEY} = $key;
-        $restic_repository = "b2:$bucket:/$systemname";
-    } elsif ($VFSType eq 'rest') {
-        my $host = $record->prop('RestHost');
-        my $port = $record->prop('RestPort');
-        my $user = $record->prop('RestUser') || '';
-        my $password = $record->prop('RestPassword') || '';
-        my $protocol = $record->prop('RestProtocol');
-        my $dir = $record->prop('RestDirectory');
-        my $auth = '';
-        if ($user ne '' && $password ne '') {
-           $auth = "$user:$password@";
-        }
-        $restic_repository = "rest:$protocol://$auth$host:$port/$dir"
-    } else {
-        die("Invalid VFSType: $VFSType");
-    }
+if ($restic_repository eq '') {
+    $backup->logger('ERROR',"Can't initialize restic repository");
+    exit 1;
 }
 
 $opts .= " --repo $restic_repository";
@@ -94,9 +58,6 @@ my $ret = system(CMD." $opts snapshots &>/dev/null");
 if ($ret != 0) {
     system(CMD." $opts init");
 }
-
-
-our $backup = new NethServer::BackupData();
 
 # Read include and exclude from default directory or customized file
 my @include_data_files;
