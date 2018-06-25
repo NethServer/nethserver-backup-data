@@ -118,4 +118,20 @@ Example: ::
     VFSType=rest
     status=enabled
 
+REST server
+===========
 
+To manually install the REST server, download it from https://github.com/restic/rest-server/releases and save it 
+under ``/usr/local/bin/rest-server``, example Linux 64bit: ::
+
+  R=0.9.7; wget https://github.com/restic/rest-server/releases/download/v$R/rest-server-$R-linux-amd64.gz -O - | zcat > /usr/local/bin/rest-server
+  chmod a+x /usr/local/bin/rest-server
+
+Then configure it for NethServer: ::
+
+  wget https://raw.githubusercontent.com/restic/rest-server/master/examples/systemd/rest-server.service -O - | sed 's/www\-data/apache/g' > /etc/systemd/system/rest-server.service
+  systemctl daemon-reload
+  systemctl start rest-server
+  systemctl enable rest-server
+  config set rest-server service TCPPort 8000 access green status enabled
+  signal-event firewall-adjust
