@@ -97,10 +97,7 @@ foreach  (@include_data_files) {
    print $tmp_include "$_\n";
 }
 
-$opts .= " --exclude-file $tmp_exclude --files-from $tmp_include";
-
-
-$ret = system(CMD." $opts backup &>$logFile");
+$ret = system(CMD." $opts --exclude-file $tmp_exclude --files-from $tmp_include backup &>$logFile");
 
 if ($ret != 0) {
    $backup->logger("ERROR","Backup failed, see $logFile for details - $ret");
