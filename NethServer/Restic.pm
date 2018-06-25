@@ -83,6 +83,15 @@ sub prepareRepository {
 
     my $VFSType = $record->prop('VFSType') || return '';
 
+    if (-x "/etc/e-smith/events/actions/mount-$VFSType") {
+        my $mount;
+        if ($name eq 'backup-data') {
+           $mount = $record->prop('Mount') || '/mnt/backup';
+        } else {
+           $mount = "/mnt/backup-$name";
+        }
+        return $mount;
+    }
     if ($VFSType eq 'sftp') {
         my $host = $record->prop('SftpHost');
         my $user = $record->prop('SftpUser');

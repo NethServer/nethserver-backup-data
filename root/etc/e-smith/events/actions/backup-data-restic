@@ -35,11 +35,19 @@ my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
+my $record;
+my $logFile;
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-my $record = $db->get($name) || die("No backup '$name' found");
-my $logFile = "/var/log/last-backup-$name.log";
-my $restic_password = NethServer::Password::store("restic_$name"); 
+if ($name eq '') {
+    $record = $confdb->get('backup-data') || die("No backup 'backup-data' found");
+    $logFile = $record->prop('LogFile') || '/var/log/last-backup.log';
+    $name = "backup-data";
+} else {
+    $record = $db->get($name) || die("No backup '$name' found");
+    $logFile = "/var/log/last-backup-$name.log";
+}
 
+my $restic_password = NethServer::Password::store("restic_$name"); 
 my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
 my $cleanup = lc($record->prop('CleanupOlderThan')) || 'never';
 my $opts = NethServer::Restic::initOptions($name);
@@ -63,13 +71,13 @@ if ($ret != 0) {
 my @include_data_files;
 my @exclude_data_files;
 
-if ( $name ne '' && -f "/etc/backup-data/$name.include" ) {
+if ( $name ne 'backup-data' && -f "/etc/backup-data/$name.include" ) {
     @include_data_files = $backup->load_file_list("/etc/backup-data/$name.include");
 } else {
     @include_data_files = $backup->includes(NethServer::BackupData::CONF_DIR);
 }
 
-if ( $name ne '' && -f "/etc/backup-data/$name.exclude" ) {
+if ( $name ne 'backup-data' && -f "/etc/backup-data/$name.exclude" ) {
     @exclude_data_files = $backup->load_file_list("/etc/backup-data/$name.exclude");
 } else {
     @exclude_data_files = $backup->excludes(NethServer::BackupData::CONF_DIR);
@@ -97,7 +105,10 @@ foreach  (@include_data_files) {
    print $tmp_include "$_\n";
 }
 
-$ret = system(CMD." $opts --exclude-file $tmp_exclude --files-from $tmp_include backup &>$logFile");
+$opts .= " --exclude-file $tmp_exclude --files-from $tmp_include";
+
+
+$ret = system(CMD." $opts backup &>$logFile");
 
 if ($ret != 0) {
    $backup->logger("ERROR","Backup failed, see $logFile for details - $ret");
@@ -106,10 +117,10 @@ if ($ret != 0) {
 
 if ($cleanup ne 'never') {
     $ret = system(CMD." $opts forget --keep-within $cleanup &>$logFile");
-    $backup->logger("WARNING","Cleanup files, see $logFile for details - $ret");
+    $backup->logger("ERROR","Cleanup failed, see $logFile for details - $ret");
 }
 
-if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
     system("/etc/e-smith/events/actions/umount-$VFSType $name");
 }
 
