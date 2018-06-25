@@ -2,7 +2,40 @@
 nethserver-restic
 =================
 
-Database example: ::
+Supported backends:
+
+- CIFS
+- NFS
+- USB
+- sFTP
+- Amazon S3 or compatibile
+- BackBlaze B2B
+- Restic REST server
+
+
+TODO
+====
+
+- Better handling of restore and backup logs
+
+
+Add a backup
+============
+
+sFTP example: ::
+
+  db backups set t1 restic VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPassword Nethesis,1234 SftpPort 22 SftpDirectory /mnt/t1 status enabled BackupTime 3:00 CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost
+  echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
+
+Execute: ::
+
+  backup-data t1
+
+
+Database
+========
+
+Example: ::
 
  t2=restic
     BackupTime=1:00
@@ -84,4 +117,5 @@ Database example: ::
     RestUser=test
     VFSType=rest
     status=enabled
+
 
