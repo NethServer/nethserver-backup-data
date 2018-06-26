@@ -2,36 +2,109 @@
 nethserver-restic
 =================
 
-Supported backends:
+Implement backup backend using restic (https://restic.net/), it can be used as duplicity replacement for standard
+backup or as multiple backup.
 
-- CIFS
-- NFS
-- USB
-- sFTP
-- Amazon S3 or compatibile
-- BackBlaze B2B
-- Restic REST server
+Storage backends
+================
+
+Supported ``VFSType`` :
+
+* ``usb``
+* ``cifs``
+* ``nfs``
+* ``webdav``: only if used as duplicity replacement in the standard backup
+* ``s3``: Amazon S3 (or compatibile server like Minio)
+* ``sftp``: FTP over SSH
+* ``b2``: BackBlaze B2
+* ``rest``: Restic REST server
 
 
-TODO
-====
+sftp
+----
 
-- Better handling of restore and backup logs
+sFTP: FTP over SSH
 
+Connection to remote host uses a specific public key. A password is needed only once to copy the public key to the remote host.
+SSH client configuration is addedd to ``/etc/ssh/sshd_config``.
 
-Add a backup
-============
+Properties:
 
-sFTP example: ::
+* ``SftpHost``: SSH hostname or IP address
+* ``SftpUser``: SSH user
+* ``SftpPort``: SSH port
+* ``SftpDirectory``: destination directory, must be writable by SSH user
 
-  db backups set t1 restic VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPassword Nethesis,1234 SftpPort 22 SftpDirectory /mnt/t1 status enabled BackupTime 3:00 CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost
+Example: ::
+
+  db backups set t1 restic VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 status enabled BackupTime 3:00 CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost
   echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
 
-Execute: ::
+The temporary file containing the password will be deleted at the end of ``nethserver-backup-data-save`` event.
 
-  backup-data t1
+s3
+--
+
+Amazon S3 (https://aws.amazon.com/s3/) compatibile (like https://www.minio.io/).
+
+Properties
+
+* ``S3AccessKey``: user access key
+* ``S3Bucket``: bucket (directory) name
+* ``S3Host``: S3 host, use s3.amazonaws.com for Amazon
+* ``S3SecretKey``: secret access key
+
+Example: ::
+
+  db backupst set t1 restic VFSType s3 BackupTime 4:00 CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  S3AccessKey XXXXXXXXXXXXXXXXXXXX S3Bucket restic-demo S3Host s3.amazonaws.com S3SecretKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx status enabled
+  signal-event nethserver-backup-data-save t1
 
 
+How to setup Amazon S3 access keys: https://restic.readthedocs.io/en/stable/080_examples.html
+
+
+b2
+--
+
+Backblaze B2 (https://www.backblaze.com/b2/cloud-storage.html)
+
+Properties:
+
+* ``B2AccountId``: B2 account name
+* ``B2AccountKey``: B2 account secret key
+* ``B2Bucket``: B2 bucker (directory)
+
+Example: ::
+  
+  db backupst set t1 restic VFSType b2 BackupTime 4:00 CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  B2AccountId B2AccountId xxxxxxxxxxxx B2AccountKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 2Bucket restic-demo 
+  signal-event nethserver-backup-data-save t1
+
+
+Rest
+----
+
+Restic REST server (https://github.com/restic/rest-server)
+
+Properties:
+
+* ``RestDirectory``: destination directory
+* ``RestHost``: REST server hostname or IP address
+* ``RestPort``: REST srver port (default for server is 8000)
+* ``RestProtocol``: REST protocol, can be ``http`` or ``https``
+* ``RestUser``: user for authentication (optional)
+* ``RestPassword``: password for authentication (optional)
+
+
+Example: ::
+
+  db backupst set t1 restic VFSType rest BackupTime 4:00 CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  RestDirectory t1 RestHost 192.168.1.2 RestPassword mypass RestPort 8000 RestProtocol http RestUser myuser
+  signal-event nethserver-backup-data-save t1
+
+
+ 
 Database
 ========
 
@@ -135,3 +208,10 @@ Then configure it for NethServer: ::
   systemctl enable rest-server
   config set rest-server service TCPPort 8000 access green status enabled
   signal-event firewall-adjust
+
+TODO
+====
+
+- Better handling of restore and backup logs
+
+
