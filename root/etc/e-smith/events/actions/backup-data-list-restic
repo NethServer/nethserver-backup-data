@@ -46,6 +46,7 @@ my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found
 $systemname = $systemname->prop('type');
 if ($name eq '') {
    $backup = $confdb->get('backup-data');
+   $name = 'backup-data';
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $backup = $db->get($name) || die("No backup '$name' found");

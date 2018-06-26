@@ -63,6 +63,7 @@ $systemname = $systemname->prop('type');
 if ($name eq '') {
    $record = $confdb->get('backup-data');
    $logFile = '/var/log/restore.log';
+   $name = 'backup-data';
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $record = $db->get($name) || die("No backup '$name' found");
@@ -103,7 +104,7 @@ if (@files) {  # restore selected files
 
 my $ret = system("$cmd &>>$logFile");
 
-if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
    system("/etc/e-smith/events/actions/umount-$VFSType $name");
 }
 
