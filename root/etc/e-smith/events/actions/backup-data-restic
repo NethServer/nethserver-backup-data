@@ -117,7 +117,9 @@ if ($ret != 0) {
 
 if ($cleanup ne 'never') {
     $ret = system(CMD." $opts forget --keep-within $cleanup &>$logFile");
-    $backup->logger("ERROR","Cleanup failed, see $logFile for details - $ret");
+    if ($ret > 0) {
+        $backup->logger("ERROR","Cleanup failed, see $logFile for details - $ret");
+    }
 }
 
 if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
