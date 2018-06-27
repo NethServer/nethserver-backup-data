@@ -100,10 +100,7 @@ foreach  (@include_data_files) {
    print $tmp_include "$_\n";
 }
 
-$opts .= " --exclude-file $tmp_exclude --files-from $tmp_include";
-
-
-$ret = system(CMD." $opts backup");
+$ret = system(CMD." $opts --exclude-file $tmp_exclude --files-from $tmp_include  backup --exclude-caches");
 
 if ($ret != 0) {
    error("Backup failed");
