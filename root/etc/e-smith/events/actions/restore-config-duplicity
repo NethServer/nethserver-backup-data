@@ -45,17 +45,16 @@ my $opts = '';
 my $src = "";
 
 my $backup = new NethServer::BackupData();
-$backup->set_log_file('/var/log/restore-data.log');
 
 
 if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
    $src = " file://$mntdir/$systemname ";
    my $status = system("/etc/e-smith/events/actions/mount-$VFSType");
    if ($status) {
-       $backup->bad_exit("Can't mount $VFSType filesystem");
+       error("Can't mount $VFSType filesystem");
    }
 } else {
-   $backup->bad_exit("No valid VFSType ($VFSType)",1);
+   error("No valid VFSType: $VFSType");
 }
 
 # disable encryption
@@ -68,7 +67,7 @@ my $cmd = CMD." restore $opts --force --file-to-restore $file $src /$file >/dev/
 
 if (my $ret = system($cmd)) {
    system("/etc/e-smith/events/actions/umount-$VFSType");
-   $backup->bad_exit("Restore backup config failed",$ret); 
+   error("Restore backup config failed"); 
 }
   
 # if umount fails, exit 0 anyway 
@@ -76,3 +75,8 @@ system("/etc/e-smith/events/actions/umount-$VFSType");
 
 exit (0);
 
+sub error {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+    exit 1;
+}

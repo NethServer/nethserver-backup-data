@@ -55,19 +55,16 @@ my @files = @ARGV;
 
 my $backupwk;
 my $mntdir;
-my $logFile; # duplicity output
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
 if ($name eq '') {
    $backupwk = $confdb->get('backup-data');
-   $logFile = '/var/log/restore.log';
    $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $backupwk = $db->get($name) || die("No backup '$name' found");
-   $logFile = "/var/log/restore-$name.log";
    $mntdir = $backupwk->prop('Mount') || "/mnt/backup-$name";
 }
 
@@ -78,7 +75,6 @@ my $opts = '';
 my $src = " file://$mntdir/$systemname ";
 
 my $backup = new NethServer::BackupData();
-$backup->set_log_file($logFile);
 
 # disable encryption
 $opts .= " --no-encryption ";
@@ -86,10 +82,6 @@ $opts .= " --no-encryption ";
 $opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/$name ";
 if ($time) {
     $opts .= " -t $time ";
-}
-# add log file
-if ( -e $logFile) {
-   unlink($logFile);
 }
 
 my $ret;
@@ -110,7 +102,7 @@ if (@files) {  # restore selected files
             make_path("$position/$directories");
             $cmd .= " --file-to-restore '$_' $src $position/'$_'";
         }
-        $ret += system("$cmd &>>$logFile");
+        $ret += system($cmd);
     } 
 } else { # restore all
    if ($position eq "/") {
@@ -118,12 +110,11 @@ if (@files) {  # restore selected files
    } else {
        $cmd .= " $src $position/";
    }
-   $ret = system("$cmd &>$logFile");
+   $ret = system($cmd);
 }
 
 if ($ret != 0) {
-   print "See $logFile for errors.\n";
-   $backup->bad_exit("Restore failed, see $logFile for details",$ret); 
+   exit $ret;
 }
 
 if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {

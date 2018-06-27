@@ -23,8 +23,7 @@ use strict;
 use esmith::ConfigDB;
 use NethServer::BackupConfig;
 use Getopt::Std;
-
-use constant DEBUG => 0;
+use POSIX qw/strftime/;
 
 sub print_help
 {
@@ -48,56 +47,55 @@ my $backup;
 my $program;
 my $restore_action;
 my $status;
-my $logFile;
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 if ($name eq '') {
    $backup = $conf->get('backup-data');
    $program = $backup->prop('Program') || 'duplicity';
-   $logFile = '/var/log/restore-data.log';
    $restore_action = "/etc/e-smith/events/actions/restore-data-$program"; 
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $backup = $db->get($name) || die("No backup '$name' found");
    $program = $backup->prop('type') || 'duplicity';
    $restore_action = "/etc/e-smith/events/actions/restore-data-$program -b $name";
-   $logFile = "/var/log/restore-data-$name.log";
 }
 
-$backup = new NethServer::BackupConfig();
-$backup->set_log_file($logFile);
+$backup = new NethServer::BackupConfig($name);
 
-$backup->logger("START","Restore data started");
+my $start = time;
+out("Restore started at %s", strftime('%F %T',localtime));
 
 if ($status = system(qw(/sbin/e-smith/signal-event pre-restore-data)))
 {
-    debug("Event pre-restore-data failed");
-    $backup->bad_exit("Event pre-restore-data failed", $status);
+    error("Event pre-restore-data failed");
 }
-debug("Event pre-restore-data ok");
-$backup->logger("STEP","pre-restore-data done");
+out("Event pre-restore-data: SUCCESS");
 
-debug("Executing '$restore_action'");
 if ($status = system($restore_action))
 {
-    debug("Action '$restore_action' failed");
-    $backup->bad_exit("Action restore-data-$program failed", $status);
+    error("Action restore-data-$program failed");
 }
-debug("Action '$restore_action' ok");
-$backup->logger("STEP","restore-data-$program done");
+out("Action '$restore_action': SUCCESS");
 
 if ($status = system(qw(/sbin/e-smith/signal-event post-restore-data)))
 {
-    debug("Event poist-restore-data failed");
-    $backup->bad_exit("Event post-restore-data failed", $status);
+    error("Event post-restore-data failed");
 }
 
-debug("Event post-restore-data ok");
-$backup->logger("SUCCESS","Restore data done");
+out("Event post-restore-data: SUCCESS");
+out("Restore ended at %s", strftime('%F %T',localtime));
+my $duration = time - $start;
+out("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
 
 exit 0;
 
-sub debug {
-   my $msg = shift;
-   print "[DEBUG] $msg\n" if (DEBUG);
+sub out {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+}
+
+sub error {
+    out($@);
+    out("Restore: FAIL");
+    exit 1;
 }
 

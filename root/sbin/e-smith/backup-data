@@ -49,7 +49,6 @@ if ($help)
 
 my $backup;
 my $program;
-my $logFile;
 my $status;
 my %du;
 my $timeout = 0;
@@ -57,88 +56,62 @@ my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 if ($name eq '') {
    $backup = $conf->get('backup-data');
    $program = $backup->prop('Program') || 'duplicity';
-   $logFile = '/var/log/last-backup.log';
+   out("Backup: backup-data");
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $backup = $db->get($name) || die("No backup '$name' found");
    $program = $backup->prop('type') || 'duplicity';
-   $logFile = "/var/log/last-backup-$name.log";
+   out("Backup: $name");
 }
-# valid values for notify are: always, error, never
-my $notify = $backup->prop('Notify') || $backup->prop('notify') || 'error';
-my $notify_to = $backup->prop('NotifyTo') || $backup->prop('notifyTo') || 'root';
-my $notify_from = $backup->prop('NotifyFrom') || $backup->prop('notifyFrom') || 'root';
 my $duLogFile = '/var/lib/nethserver/backup/disk_usage';
 
-$backup = new NethServer::BackupData($name, $notify, $notify_to, $notify_from);
+$backup = new NethServer::BackupData();
 
-# remove log file
-if ( -e $logFile) {
-   unlink($logFile);
-}
-
-$backup->cleanup_notification();
-$backup->notify("===== Report for data backup =====\n");
 
 my $start = time;
-$backup->notify("Backup started at %s", strftime('%F %T',localtime));
-$backup->logger("START","Backup data started");
+out("Backup started at %s", strftime('%F %T',localtime));
 
 # if there is a pre-backup-data running, wait for it
 do {
     sleep(1);
     $timeout++;
     if ($timeout >= MAX_TIME) {
-        $backup->bad_exit("Timeout while waiting pre-backup-data");
+        error("Timeout while waiting pre-backup-data");
     }
-    debug("Waiting for pre-backup-data: slept for $timeout seconds");
 } while ($backup->is_running('/sbin/e-smith/signal-event pre-backup-data',1));
 
 # if there are other backup still running, no need to execute pre-backup-data again
 if (!$backup->is_running('backup-data')) {
-    debug("No concurrent backup, starting pre-backup-data");
     if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-data)))
     {
-        $backup->notify("Pre backup scripts status: ERROR");
-        $backup->bad_exit("Event pre-backup-data failed", $status>>8);
+        error("Event pre-backup-data: FAIL");
     }
-    $backup->logger("STEP","pre-backup-done done");
-    $backup->notify("Pre backup scripts status: SUCCESS");
+    out("Pre backup scripts status: SUCCESS");
 } else {
-    debug("Concurrent backup found, skipping pre-backup-data");
-    $backup->logger("STEP","pre-backup-done skipped");
-    $backup->notify("Pre backup scripts status: SKIP");
+    out("Pre backup scripts status: SKIPPED (concurrent backup is running)");
 }
 
-debug("Runinng backup-data-$program $name");
 if ($status = system("/etc/e-smith/events/actions/backup-data-$program $name"))
 {
-    debug("backup-data-$program failed");
-    $backup->notify("Backup script status: ERROR");
-    $backup->bad_exit("Action backup-data-$program failed", $status>>8, $logFile);
+    error("Action 'backup-data-$program $name': FAIL");
 }
-$backup->logger("STEP","backup-data-$program done");
+out("Action 'backup-data-$program $name': SUCCESS");
 
-# if there are other backup still running, only last process wil execute post-backup-data
+# if there are other backup still running, only last process will execute post-backup-data
 if (!$backup->is_running('backup-data')) {
-    debug("No concurrent backup, starting post-backup-data");
     if ($status = system(qw(/sbin/e-smith/signal-event post-backup-data)))
     {
-        $backup->notify("Post backup scripts status: ERROR");
-        $backup->bad_exit("Event post-backup-data failed", $status>>8);
+        error("Event post-backup-data: FAIL");
     }
-    $backup->notify("Post backup scripts status: SUCCESS");
+    out("Post backup scripts status: SUCCESS");
 } else {
-    debug("Concurrent backup found, skipping post-backup-data");
-    $backup->notify("Post backup scripts status: SKIP");
+    out("Post backup scripts status: SKIPPED (concurrent backup is running)");
 }
 
-debug("Backup ended successfully");
-$backup->logger("SUCCESS","Backup done");
-$backup->notify("Backup status: SUCCESS");
-$backup->notify("Backup ended at %s", strftime('%F %T',localtime));
+out("Backup status: SUCCESS");
+out("Backup ended at %s", strftime('%F %T',localtime));
 my $duration = time - $start;
-$backup->notify("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
+out("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
 
 if ($name eq '') {
     # disk usage stats
@@ -152,12 +125,9 @@ if ($name eq '') {
     } else {
         warn("[WARNING] Could not open $duLogFile\n");
     }
-    $backup->notify("\nDisk Usage:\n%10s %10s %10s %8s", 'Size', 'Used', 'Available', 'Use%');
-    $backup->notify("%10s %10s %10s %8s", $du{'size'}||'-', $du{'used'}||'-', $du{'avail'}||'-', $du{'pcent'}||'-');
+    out("\nDisk Usage:\n%10s %10s %10s %8s", 'Size', 'Used', 'Available', 'Use%');
+    out("%10s %10s %10s %8s", $du{'size'}||'-', $du{'used'}||'-', $du{'avail'}||'-', $du{'pcent'}||'-');
 }
-
-
-$backup->send_notification(0,$logFile);
 
 
 exit 0;
@@ -178,7 +148,13 @@ sub format_bytes {
 }
 
 
-sub debug {
-   my $msg = shift;
-   print "[DEBUG] $msg\n" if (DEBUG);
+sub out {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+}
+
+sub error {
+    out(@_);
+    out("Backup status: FAIL");
+    exit 1;
 }

@@ -21,11 +21,7 @@
 
         # remove leading zeros from minutes
 
-        if ($name ne '') {
-            $opt = '-b'
-        }
-
-        $OUT .="$backupCron root /sbin/e-smith/backup-data $opt $name\n";
+        $OUT .="$backupCron root /sbin/e-smith/backup-data-wrapper $name\n";
     }
 
     # Default backup-data

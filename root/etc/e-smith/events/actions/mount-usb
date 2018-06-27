@@ -85,6 +85,6 @@ sub ldie
 {
     my $errmsg = shift;
     system("/bin/umount", "$mntdir") if $mntdone;
-    $b->bad_exit($errmsg);
+    die($errmsg);
 }
 

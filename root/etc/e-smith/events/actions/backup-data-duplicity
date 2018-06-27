@@ -79,8 +79,7 @@ if ($type eq 'full') {
         $opts .= " incr ";
     }
 } else { # nothing to do
-    $backup->logger('ERROR',"Backup type unknown - 1");
-    exit 1;
+    error("Backup type unknown: $type");
 }
 
 
@@ -91,18 +90,17 @@ my @exclude_data_files;
 if ( $name ne '' && -f "/etc/backup-data/$name.include" ) {
     @include_data_files = $backup->load_file_list("/etc/backup-data/$name.include");
 } else {
-    @include_data_files = $backup->includes(NethServer::BackupData::CONF_DIR);
+    @include_data_files = $backup->includes($backup->get_config_dir());
 }
 
 if ( $name ne '' && -f "/etc/backup-data/$name.exclude" ) {
     @exclude_data_files = $backup->load_file_list("/etc/backup-data/$name.exclude");
 } else {
-    @exclude_data_files = $backup->excludes(NethServer::BackupData::CONF_DIR);
+    @exclude_data_files = $backup->excludes($backup->get_config_dir());
 }
 
 if (!@include_data_files) {
-    $backup->logger('ERROR',"Nothing to backup - 1");
-    exit 1;
+    error("Nothing to backup");
 }
 
 # Create globbing file list
@@ -124,15 +122,13 @@ $opts .= " --exclude=/var/lib/nethserver/backup/duplicity/ --include-filelist $t
 $opts .= " --volsize $volSize ";
 
 if ( ! -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
-   $backup->logger("ERROR","No valid VFSType ($VFSType) - 1");
-   exit 1;
+   error("No valid VFSType: $VFSType");
 }
 
 if ($name ne '') {
    my $ret_mnt = system("/etc/e-smith/events/actions/mount-$VFSType $name");
    if ($ret_mnt > 0) {
-        $backup->logger("ERROR","Can't mount $mntdir");
-        exit 1;
+        error("Can't mount $mntdir");
    }
 }
 mkdir "$mntdir/$systemname";
@@ -149,14 +145,15 @@ unlink glob "$cacheDir/*/lockfile.lock";
 
 if (DEBUG) {
     $opts .= "-v8 ";
-    print CMD." $opts / $dst &>$logFile\n";
+    print CMD." $opts / $dst\n";
+} else {
+    $opts .= "-v2 ";
 }
 
-my $ret = system(CMD." $opts / $dst &>$logFile");
+my $ret = system(CMD." $opts / $dst");
 
 if ($ret != 0) {
-   $backup->logger("ERROR","Backup failed, see $logFile for details - $ret");
-   exit 1; 
+   error("Backup failed, see $logFile for details");
 }
 
 if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
@@ -164,3 +161,9 @@ if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
 }
 
 exit (0);
+
+sub error {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+    exit 1;
+}

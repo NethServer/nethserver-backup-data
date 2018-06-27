@@ -67,9 +67,9 @@ class BackupData extends \Nethgui\Controller\AbstractController
 
         $this->declareParameter('notifyToType', $this->createValidator()->memberOf(array('admin','custom')), array());
         $this->declareParameter('notifyToCustom', Validate::EMAIL, array());
-        $this->declareParameter('notifyTo', FALSE, array('configuration', 'backup-data', 'notifyTo')); # not accessibile from UI, position is IMPORTANT
-        $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('configuration', 'backup-data', 'notify'));
-        $this->declareParameter('notifyFrom', $fromValidator, array('configuration', 'backup-data', 'notifyFrom'));
+        $this->declareParameter('notifyTo', FALSE, array('configuration', 'backup-data', 'NotifyTo')); # not accessibile from UI, position is IMPORTANT
+        $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('configuration', 'backup-data', 'Notify'));
+        $this->declareParameter('notifyFrom', $fromValidator, array('configuration', 'backup-data', 'NotifyFrom'));
 
         $this->declareParameter('VFSType', $this->createValidator()->memberOf($this->vfstypes), array('configuration', 'backup-data', 'VFSType'));
         
@@ -218,7 +218,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
 
     public function readNotifyToType()
     {
-        $current = $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','notifyTo');
+        $current = $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','NotifyTo');
         if($current == "root@localhost") {
             return "admin";
         } else {

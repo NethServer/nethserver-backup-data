@@ -34,39 +34,20 @@ class Backup extends \Nethgui\Controller\AbstractController
 
     private function readBackup()
     {
-        $log = "/var/log/backup-data.log";
+        $status_file = "/var/spool/backup/status-backup-data";
+        $status = file_get_contents($status_file);
         $backup = array();
-        $backup['result'] = '-';
-        $backup['start'] = '-';
-        $backup['end'] = '-';
-        if (file_exists($log)) {
-            $lines = array_reverse(file($log));
-            foreach ($lines as $line) {
-                $tmp = explode(' - ', $line);
-                if ($tmp[1] == "START") {
-                    $backup['start'] = strtotime($tmp[0]);
-                    break;
-                }
-            }
-            if (isset($lines[0])) {
-                $tmp = explode(' - ', $lines[0]);
-                $backup['result'] = $tmp[1];;
-                $backup['end'] = strtotime($tmp[0]);
-            }
-        }
+        $backup['result'] = $status == 0 ? 'SUCCESS' : 'ERROR';
+        $backup['end'] = filemtime($status_file);;
         $br = $this->getPlatform()->getDatabase('configuration')->getKey('backup-data');
         $backup['vfs'] = $br['VFSType'] ? $br['VFSType'] : '-';
         $backup['status'] = $br['status'];
-        $backup['type'] = $br['Type'];
         $backup['time'] = $br['BackupTime'];
 
-        $log = "/var/lib/nethserver/backup/disk_usage";
-        if (file_exists($log)) {
-            $file = file_get_contents("$log");
+        $disk_usage_file = "/var/lib/nethserver/backup/disk_usage";
+        if (file_exists($disk_usage_file)) {
+            $file = file_get_contents("$disk_usage_file");
             if ($du = json_decode($file, true)) {
-                //( is_numeric($du['size']) && $du['size'] >= 0 ) ? $backup['size'] = $du['size'] : '';
-                //( is_numeric($du['used']) && $du['used'] >= 0 ) ? $backup['used'] = $du['used'] : '';
-                //( is_numeric($du['avail']) && $du['avail'] >= 0 ) ? $backup['avail'] = $du['avail'] : '';
                 if ( is_numeric($du['size']) && $du['size'] >= 0 &&
                      is_numeric($du['used']) && $du['used'] >= 0 &&
                      is_numeric($du['avail']) && $du['avail'] >= 0 ) {
