@@ -37,7 +37,8 @@ Properties:
 
 Example: ::
 
-  db backups set t1 restic VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 status enabled BackupTime 3:00 CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost
+  db backups set t1 restic status enabled BackupTime '15 7 * * *' CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost \
+  VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 
   echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
 
 The temporary file containing the password will be deleted at the end of ``nethserver-backup-data-save`` event.
@@ -56,7 +57,7 @@ Properties
 
 Example: ::
 
-  db backupst set t1 restic VFSType s3 BackupTime 4:00 CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  db backupst set t1 restic VFSType s3 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
   S3AccessKey XXXXXXXXXXXXXXXXXXXX S3Bucket restic-demo S3Host s3.amazonaws.com S3SecretKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx status enabled
   signal-event nethserver-backup-data-save t1
 
@@ -77,7 +78,7 @@ Properties:
 
 Example: ::
   
-  db backupst set t1 restic VFSType b2 BackupTime 4:00 CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  db backupst set t1 restic VFSType b2 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
   B2AccountId B2AccountId xxxxxxxxxxxx B2AccountKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 2Bucket restic-demo 
   signal-event nethserver-backup-data-save t1
 
@@ -99,7 +100,7 @@ Properties:
 
 Example: ::
 
-  db backupst set t1 restic VFSType rest BackupTime 4:00 CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  db backupst set t1 restic VFSType rest BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
   RestDirectory t1 RestHost 192.168.1.2 RestPassword mypass RestPort 8000 RestProtocol http RestUser myuser
   signal-event nethserver-backup-data-save t1
 
@@ -111,7 +112,7 @@ Database
 Example: ::
 
  t2=restic
-    BackupTime=1:00
+    BackupTime=1 7 * * *
     CleanupOlderThan=never
     Notify=error
     NotifyFrom=
@@ -123,7 +124,7 @@ Example: ::
     VFSType=cifs
     status=enabled
  t3=restic
-    BackupTime=1:00
+    BackupTime=15 7 * * *
     CleanupOlderThan=never
     NFSHost=192.168.1.234
     NFSShare=/test
@@ -133,7 +134,7 @@ Example: ::
     VFSType=nfs
     status=enabled
  t4=restic
-    BackupTime=2:00
+    BackupTime=15 7 * * *
     CleanupOlderThan=10D
     Notify=error
     NotifyFrom=
@@ -142,7 +143,7 @@ Example: ::
     VFSType=usb
     status=enabled
  t5=restic
-    BackupTime=3:00
+    BackupTime=*/20 7 * * *
     CleanupOlderThan=10D
     Notify=error
     NotifyFrom=
@@ -154,7 +155,7 @@ Example: ::
     VFSType=sftp
     status=enabled
  t6=restic
-    BackupTime=4:00
+    BackupTime=15 7 * * *
     CleanupOlderThan=10D
     Notify=error
     NotifyFrom=
@@ -169,7 +170,7 @@ Example: ::
     B2AccountId=xxxxxxxxxxxx
     B2AccountKey=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     B2Bucket=restic-demo
-    BackupTime=5:00
+    BackupTime=15 7 * * *
     CleanupOlderThan=11D
     Notify=error
     NotifyFrom=
@@ -177,7 +178,7 @@ Example: ::
     VFSType=b2
     status=enabled
  t8=restic
-    BackupTime=6:00
+    BackupTime=15 7 * * *
     CleanupOlderThan=10D
     Notify=error
     NotifyFrom=
@@ -208,10 +209,4 @@ Then configure it for NethServer: ::
   systemctl enable rest-server
   config set rest-server service TCPPort 8000 access green status enabled
   signal-event firewall-adjust
-
-TODO
-====
-
-- Better handling of restore and backup logs
-
 
