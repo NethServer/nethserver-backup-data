@@ -36,15 +36,12 @@ my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found
 $systemname = $systemname->prop('type');
 
 my $record;
-my $logFile;
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
 if ($name eq '') {
     $record = $confdb->get('backup-data') || die("No backup 'backup-data' found");
-    $logFile = $record->prop('LogFile') || '/var/log/last-backup.log';
     $name = "backup-data";
 } else {
     $record = $db->get($name) || die("No backup '$name' found");
-    $logFile = "/var/log/last-backup-$name.log";
 }
 
 my $restic_password = NethServer::Password::store("restic_$name"); 
@@ -52,11 +49,10 @@ my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
 my $cleanup = lc($record->prop('CleanupOlderThan')) || 'never';
 my $opts = NethServer::Restic::initOptions($name);
 my $restic_repository = NethServer::Restic::prepareRepository($systemname, $record);
-our $backup = new NethServer::BackupData($name);
+our $backup = new NethServer::BackupData();
 
 if ($restic_repository eq '') {
-    $backup->logger('ERROR',"Can't initialize restic repository");
-    exit 1;
+    error("Can't initialize restic repository");
 }
 
 $opts .= " --repo $restic_repository";
@@ -84,8 +80,7 @@ if ( $name ne 'backup-data' && -f "/etc/backup-data/$name.exclude" ) {
 }
 
 if (!@include_data_files) {
-    $backup->logger('ERROR',"Nothing to backup - 1");
-    exit 1;
+    error("Nothing to backup");
 }
 
 # Create globbing file list
@@ -108,17 +103,17 @@ foreach  (@include_data_files) {
 $opts .= " --exclude-file $tmp_exclude --files-from $tmp_include";
 
 
-$ret = system(CMD." $opts backup &>$logFile");
+$ret = system(CMD." $opts backup");
 
 if ($ret != 0) {
-   $backup->logger("ERROR","Backup failed, see $logFile for details - $ret");
+   error("Backup failed");
    exit 1; 
 }
 
 if ($cleanup ne 'never') {
-    $ret = system(CMD." $opts forget --keep-within $cleanup &>$logFile");
+    $ret = system(CMD." $opts forget --keep-within $cleanup");
     if ($ret > 0) {
-        $backup->logger("ERROR","Cleanup failed, see $logFile for details - $ret");
+        error("Cleanup failed");
     }
 }
 
@@ -127,3 +122,9 @@ if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" 
 }
 
 exit (0);
+
+sub error {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+    exit 1;
+}

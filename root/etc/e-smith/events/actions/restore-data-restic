@@ -55,21 +55,17 @@ my $position = shift @ARGV || '/';
 my @files = @ARGV;
 
 my $record;
-my $logFile; # restic output
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
 if ($name eq '') {
    $record = $confdb->get('backup-data');
-   $logFile = '/var/log/restore.log';
    $name = 'backup-data';
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $record = $db->get($name) || die("No backup '$name' found");
-   $logFile = "/var/log/restore-$name.log";
 }
-
 
 my $type = $record->prop('Type') || 'full';
 my $forceFull = $record->prop('ForceFull') || 'enabled';
@@ -80,19 +76,13 @@ my $opts = NethServer::Restic::initOptions($name);
 my $restic_repository = NethServer::Restic::prepareRepository($systemname, $record);
 my $backup = new NethServer::BackupData($name);
 
-$backup->set_log_file($logFile);
 
 if ($restic_repository eq '') {
-    $backup->logger('ERROR',"Can't initialize restic repository");
+    print("Can't initialize restic repository");
     exit 1;
 }
 
 $opts .= " --repo $restic_repository";
-
-# add log file
-if ( -e $logFile) {
-   unlink($logFile);
-}
 
 my $cmd = CMD." $opts restore $time --target $position ";
 
@@ -102,15 +92,15 @@ if (@files) {  # restore selected files
     } 
 }
 
-my $ret = system("$cmd &>>$logFile");
+my $ret = system($cmd);
 
 if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
    system("/etc/e-smith/events/actions/umount-$VFSType $name");
 }
 
 if ($ret != 0) {
-   print "See $logFile for errors.\n";
-   $backup->bad_exit("Restore failed, see $logFile for details",$ret); 
+   print("Restore failed");
+   exit 1;
 }
 
 exit (0);
