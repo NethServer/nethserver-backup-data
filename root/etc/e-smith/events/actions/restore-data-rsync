@@ -1,0 +1,105 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::ConfigDB;
+use NethServer::BackupData;
+use NethServer::BackupConfig;
+use NethServer::Rsync;
+use File::Path  qw(make_path);
+use File::Basename;
+use Getopt::Std;
+
+sub print_help
+{
+    print "Usage $0 [-t <days>] [-b <backup_name>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
+    print "  -t : specify the snapshot from which to restore or list files\n";
+    print "  -b : specify the name of backup to restore\n";
+    print "  -h : show this help\n";
+}
+
+my %options=();
+getopts("ht:b:", \%options);
+my $help = $options{h};
+my $time = $options{t} || '';
+my $name = $options{b} || '';
+
+if ($help)
+{
+  print_help();
+  exit(0);
+}
+
+use constant CMD => '/usr/bin/rsync';
+
+my $position = shift @ARGV || '/';
+my @files = @ARGV;
+
+my $record;
+my $confdb = esmith::ConfigDB->open;
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
+
+if ($name eq '') {
+   $record = $confdb->get('backup-data');
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $record = $db->get($name) || die("No backup '$name' found");
+}
+
+my $VFSType = $record->prop('VFSType') || die("Invalid VFSType");
+
+my $backup = new NethServer::BackupData();
+
+my $tmp_include = "";
+
+if (@files) {  # restore selected files
+    # Create globbing file list
+    $tmp_include = File::Temp->new(UNLINK => 0);
+    chmod(0600,$tmp_include->filename);
+    foreach (@files) {
+        print $tmp_include "$_\n";
+    }
+}
+
+my $opts = NethServer::Rsync::initRestoreOptions($tmp_include);
+my $repo = NethServer::Rsync::prepareRepository($systemname, $record);
+
+if ($time) {
+    $repo .= "/$time/ ";
+} else {
+    $repo .= "/latest/ ";
+}
+
+print CMD." $opts $repo $position\n";
+my $ret = system(CMD." $opts $repo $position");
+
+if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+    system("/etc/e-smith/events/actions/umount-$VFSType $name");
+}
+
+if ($ret != 0) {
+   exit $ret;
+}
+
+exit (0);
+
