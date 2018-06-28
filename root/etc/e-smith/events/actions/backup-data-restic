@@ -70,13 +70,13 @@ my @exclude_data_files;
 if ( $name ne 'backup-data' && -f "/etc/backup-data/$name.include" ) {
     @include_data_files = $backup->load_file_list("/etc/backup-data/$name.include");
 } else {
-    @include_data_files = $backup->includes(NethServer::BackupData::CONF_DIR);
+    @include_data_files = $backup->includes($backup->get_config_dir());
 }
 
 if ( $name ne 'backup-data' && -f "/etc/backup-data/$name.exclude" ) {
     @exclude_data_files = $backup->load_file_list("/etc/backup-data/$name.exclude");
 } else {
-    @exclude_data_files = $backup->excludes(NethServer::BackupData::CONF_DIR);
+    @exclude_data_files = $backup->excludes($backup->get_config_dir());
 }
 
 if (!@include_data_files) {
