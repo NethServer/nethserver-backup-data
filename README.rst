@@ -9,12 +9,9 @@ backup or as multiple backup.
 Retention policy
 ================
 
-The ``CleanupOlderThan`` prop accepts following values:
+Backup sets are automatically deleted when the disk is getting full.
 
-- ``never`` or ``default``: follow rsync_tmbackup default policy
-- any value accepted by ``--strategy`` option from ``rsync_tmbackup``
-
-See https://github.com/laurent22/rsync-time-backup#backup-expiration-logic
+More info on expiration strategy: https://github.com/laurent22/rsync-time-backup#backup-expiration-logic
 
 Storage backends
 ================

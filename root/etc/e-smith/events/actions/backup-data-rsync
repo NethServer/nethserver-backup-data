@@ -43,7 +43,6 @@ if ($name eq '') {
 }
 
 my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
-my $cleanup = lc($record->prop('CleanupOlderThan')) || 'default';
 my $backup = new NethServer::BackupData();
 
 
@@ -84,7 +83,7 @@ foreach  (@include_data_files) {
    print $tmp_include "$_\n";
 }
 
-my $opts = NethServer::Rsync::initOptions($tmp_include, $tmp_exclude, $cleanup);
+my $opts = NethServer::Rsync::initOptions($tmp_include, $tmp_exclude);
 my $repo = NethServer::Rsync::prepareRepository($systemname, $record);
 
 my $ret = system(CMD." $opts / $repo");

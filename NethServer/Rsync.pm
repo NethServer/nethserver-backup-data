@@ -62,13 +62,9 @@ Return a string representing default rsync options.
 sub initOptions {
    my $include = shift || die("No file specified for rsync backup");
    my $exclude = shift || '';
-   my $cleanup = shift || 'default';
    my $flags = `rsync_tmbackup --rsync-get-flags`;
    chomp($flags);
    $flags .= " --files-from=$include ";
-   if ($cleanup ne 'default' && $cleanup ne 'never') {
-       $flags .= " --strategy $cleanup ";
-   }
    if ($exclude ne '') {
        $flags .= " --exclude-from=$exclude ";
    }
