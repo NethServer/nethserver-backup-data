@@ -2,7 +2,7 @@
 nethserver-restic
 =================
 
-Implement backup backend using restic (https://restic.net/), it can be used as duplicity replacement for standard
+Implement backup enginge using restic (https://restic.net/), it can be used as duplicity replacement for standard
 backup or as multiple backup.
 
 Storage backends
