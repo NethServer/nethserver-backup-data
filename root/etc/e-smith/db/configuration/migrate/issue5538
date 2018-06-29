@@ -1,0 +1,15 @@
+{
+    #
+    # Issue 5538
+    # - migrate existing notify props for backup-data
+    #
+
+    foreach (qw(notify notifyFrom notifyTo)) {
+        my $value = $DB->get_prop_and_delete('backup-data', $_);
+        if (defined($value)) {
+            $DB->set_prop('backup-data', ucfirst($_), $value);
+        }
+    }
+
+    '';
+}

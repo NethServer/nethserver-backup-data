@@ -30,15 +30,17 @@ use Getopt::Std;
 
 sub print_help
 {
-    print "Usage $0 [-t <days>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
+    print "Usage $0 [-t <days>] [-b <backup_name>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
     print "  -t : specify the time from which to restore or list files\n";
+    print "  -b : specify the name of backup to restore\n";
     print "  -h : show this help\n";
 }
 
 my %options=();
-getopts("ht:", \%options);
+getopts("ht:b:", \%options);
 my $help = $options{h};
 my $time = $options{t} || '';
+my $name = $options{b} || '';
 
 if ($help)
 {
@@ -51,44 +53,43 @@ use constant CMD => '/usr/bin/duplicity';
 my $position = shift @ARGV || '/';
 my @files = @ARGV;
 
+my $backupwk;
+my $mntdir;
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
-my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
 
+if ($name eq '') {
+   $backupwk = $confdb->get('backup-data');
+   $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backupwk = $db->get($name) || die("No backup '$name' found");
+   $mntdir = $backupwk->prop('Mount') || "/mnt/backup-$name";
+}
 
 my $type = $backupwk->prop('Type') || 'full';
 my $forceFull = $backupwk->prop('ForceFull') || 'enabled';
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
-my $logFile = '/var/log/restore.log'; # duplicity output
 my $opts = '';
-my $src = "";
+my $src = " file://$mntdir/$systemname ";
 
 my $backup = new NethServer::BackupData();
-$backup->set_log_file('/var/log/restore-data.log');
-
-
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
-   $src = " file://$mntdir/$systemname ";
-} else {
-   $backup->bad_exit("No valid VFSType ($VFSType)",1);
-}
 
 # disable encryption
 $opts .= " --no-encryption ";
 # set duplicity cache dir
-$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
+$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/$name ";
 if ($time) {
     $opts .= " -t $time ";
-}
-# add log file
-if ( -e $logFile) {
-   unlink($logFile);
 }
 
 my $ret;
 my $cmd = CMD." restore $opts ";
+
+if ( $name ne '' && -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
+   system("/etc/e-smith/events/actions/mount-$VFSType $name");
+}
 
 if (@files) {  # restore selected files
     foreach (@files) {
@@ -101,7 +102,7 @@ if (@files) {  # restore selected files
             make_path("$position/$directories");
             $cmd .= " --file-to-restore '$_' $src $position/'$_'";
         }
-        $ret += system("$cmd &>>$logFile");
+        $ret += system($cmd);
     } 
 } else { # restore all
    if ($position eq "/") {
@@ -109,11 +110,15 @@ if (@files) {  # restore selected files
    } else {
        $cmd .= " $src $position/";
    }
-   $ret = system("$cmd &>$logFile");
+   $ret = system($cmd);
 }
 
 if ($ret != 0) {
-   $backup->bad_exit("Restore failed, see $logFile for details",$ret); 
+   exit $ret;
+}
+
+if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+   system("/etc/e-smith/events/actions/umount-$VFSType $name");
 }
 
 exit (0);

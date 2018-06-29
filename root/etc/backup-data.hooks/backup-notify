@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2018 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+backup=$1
+log=$2
+exit_code=$3
+
+hostname=$(hostname -f)
+
+if [ "$backup" == "backup-data" ]; then
+   db="configuration"
+   subject="Backup report [$hostname]:"
+else
+   db="backups"
+   subject="Backup $backup [$hostname]:"
+fi
+
+notify_to=$(/sbin/e-smith/db $db getprop $backup NotifyTo)
+notify_from=$(/sbin/e-smith/db $db getprop $backup NotifyFrom)
+notify=$(/sbin/e-smith/db $db getprop $backup Notify)
+sender=${notify_from:-root}
+recipient=${notify_to:-root@localhost}
+output=$(cat $log)
+
+if [ $exit_code -gt 0 ]; then
+    subject="$subject ERROR"
+else
+    subject="$subject SUCCESS"
+fi
+
+if [ "$notify" == "always" ] || [ "$notify" == "error" -a $exit_code -gt 0  ]; then
+    cat <<EOF | /sbin/sendmail -t -f $sender
+To: $recipient
+From: $sender
+Subject: $subject
+
+$output
+
+Log file: $log
+EOF
+fi

@@ -27,11 +27,34 @@ use Time::localtime;
 use NethServer::BackupData;
 
 use constant CMD => '/usr/bin/duplicity';
+use constant DEBUG => 0;
+
+my $name = $ARGV[0] || '';
 
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
-my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+
+my $backupwk;
+my $logFile;
+my $cacheDir;
+my $dst;
+my $mntdir;
+if ($name eq '') {
+   $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
+   $logFile = '/var/log/last-backup.log';
+   $cacheDir = "/var/lib/nethserver/backup/duplicity/";
+   $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+   $dst = " file://$mntdir/$systemname ";
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backupwk = $db->get($name) || die("No backup '$name' found");
+   $logFile = "/var/log/last-backup-$name.log";
+   $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
+   $mntdir = "/mnt/backup-$name";
+   $dst = " file://$mntdir/$systemname ";
+}
+
 
 my $tm = localtime(time);
 my $dow = $tm->wday;
@@ -39,12 +62,8 @@ my $dow = $tm->wday;
 my $type = $backupwk->prop('Type') || 'full';
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $fullday = $backupwk->prop('FullDay') || 0;
-my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
-my $logFile = $backupwk->prop('LogFile') || '/var/log/last-backup.log';
 my $volSize = $backupwk->prop('VolSize') || '250';
 my $opts = '--allow-source-mismatch';
-my $dst = "";
-my $cacheDir = "/var/lib/nethserver/backup/duplicity/";
 
 our $backup = new NethServer::BackupData();
 
@@ -60,18 +79,28 @@ if ($type eq 'full') {
         $opts .= " incr ";
     }
 } else { # nothing to do
-    $backup->logger('ERROR',"Backup type unknown - 1");
-    exit 1;
+    error("Backup type unknown: $type");
 }
 
 
-# Read include and exclude from config directory
-my @include_data_files = $backup->includes(NethServer::BackupData::CONF_DIR);
-my @exclude_data_files = $backup->excludes(NethServer::BackupData::CONF_DIR);
+# Read include and exclude from default directory or customized file
+my @include_data_files;
+my @exclude_data_files;
+
+if ( $name ne '' && -f "/etc/backup-data/$name.include" ) {
+    @include_data_files = $backup->load_file_list("/etc/backup-data/$name.include");
+} else {
+    @include_data_files = $backup->includes($backup->get_config_dir());
+}
+
+if ( $name ne '' && -f "/etc/backup-data/$name.exclude" ) {
+    @exclude_data_files = $backup->load_file_list("/etc/backup-data/$name.exclude");
+} else {
+    @exclude_data_files = $backup->excludes($backup->get_config_dir());
+}
 
 if (!@include_data_files) {
-    $backup->logger('ERROR',"Nothing to backup - 1");
-    exit 1;
+    error("Nothing to backup");
 }
 
 # Create globbing file list
@@ -89,16 +118,20 @@ foreach  (@include_data_files) {
 }
 print $tmp "- **\n";
 
-$opts .= " --exclude=$cacheDir --include-filelist $tmp";
+$opts .= " --exclude=/var/lib/nethserver/backup/duplicity/ --include-filelist $tmp";
 $opts .= " --volsize $volSize ";
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
-   mkdir "$mntdir/$systemname";
-   $dst = " file://$mntdir/$systemname ";
-} else {
-   $backup->logger("ERROR","No valid VFSType ($VFSType) - 1");
-   exit 1;
+if ( ! -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
+   error("No valid VFSType: $VFSType");
 }
+
+if ($name ne '') {
+   my $ret_mnt = system("/etc/e-smith/events/actions/mount-$VFSType $name");
+   if ($ret_mnt > 0) {
+        error("Can't mount $mntdir");
+   }
+}
+mkdir "$mntdir/$systemname";
 
 # force full backup if not exists > 8 days
 $opts .= " --full-if-older-than 8D ";
@@ -110,16 +143,27 @@ $opts .= " --archive-dir $cacheDir ";
 # remove stale duplicity lockfile
 unlink glob "$cacheDir/*/lockfile.lock";
 
-# Debug 
-# $opts .= " --dry-run -v8 ";
-# print $tmp->filename."\n";
-# print CMD." $opts / $dst &>$logFile\n";
+if (DEBUG) {
+    $opts .= "-v8 ";
+    print CMD." $opts / $dst\n";
+} else {
+    $opts .= "-v2 ";
+}
 
-my $ret = system(CMD." $opts / $dst &>$logFile");
+my $ret = system(CMD." $opts / $dst");
 
 if ($ret != 0) {
-   $backup->logger("ERROR","Backup failed, see $logFile for details - $ret");
-   exit 1; 
+   error("Backup failed, see $logFile for details");
+}
+
+if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+    system("/etc/e-smith/events/actions/umount-$VFSType $name");
 }
 
 exit (0);
+
+sub error {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+    exit 1;
+}

@@ -1,0 +1,22 @@
+#
+# 20backup_hosts
+#
+{
+    use esmith::ConfigDB;
+    my $db = esmith::ConfigDB->open_ro('backups');
+    foreach my $backup ($db->get_all()) {
+        my $status = $backup->prop('status') || 'disabled';
+        my $vfs = $backup->prop('VFSType') || next;
+        next if ($status eq 'disabled' || $vfs ne 'sftp');
+
+        my $host = $backup->prop('SftpHost') || next;
+        my $port = $backup->prop('SftpPort') || next;
+        my $user = $backup->prop('SftpUser') || next;
+        $OUT .= "Host $host\n";
+        $OUT .= "\tPort $port\n";
+        $OUT .= "\tUser $user\n";
+        $OUT .= "\tIdentityFile /var/lib/nethserver/backup/backup.key\n";
+        $OUT .= "\tUserKnownHostsFile=/dev/null\n";
+        $OUT .= "\tStrictHostKeyChecking=no\n";
+    }
+}

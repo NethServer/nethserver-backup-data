@@ -40,7 +40,6 @@ exit(0) unless($cot ne "never");
 
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
-my $logFile = '/var/log/last-cleanup.log';
 my $opts = '';
 my $dst = "";
 
@@ -50,19 +49,26 @@ if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFS
    mkdir "$mntdir/$systemname";
    $dst = " file://$mntdir/$systemname ";
 } else {
-   $backup->bad_exit("No valid VFSType ($VFSType)", 1);
+   error("No valid VFSType: $VFSType");
 }
 
 # set duplicity cache dir
 $opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
-my $ret = system(CMD." remove-older-than $cot $opts $dst --force &>$logFile");
+my $ret = system(CMD." remove-older-than $cot $opts $dst --force");
 
 if ($ret != 0) {
-   $backup->bad_exit("Remove of old backup failed. See: ".$logFile, $ret);
+   error("Cleanup of old backup failed");
 }
-$ret = system(CMD." cleanup --no-encryption $opts $dst --force &>>$logFile");
+$ret = system(CMD." cleanup --no-encryption $opts $dst --force");
 if ($ret != 0) {
-   $backup->bad_exit("Metadata cleanup failed. See:".$logFile, $ret, $logFile);
+   error("Metadata cleanup failed");
 }
 
 exit (0);
+
+sub error {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+    exit 1;
+}
+

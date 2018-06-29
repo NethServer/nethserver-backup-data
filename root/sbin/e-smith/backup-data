@@ -24,82 +24,110 @@ use esmith::ConfigDB;
 use NethServer::BackupData;
 use POSIX qw/strftime/;
 use JSON;
+use Getopt::Std;
 
-my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
-my $backup = $conf->get('backup-data');
-my $program = $backup->prop('Program') || 'duplicity';
-# valid values for notify are: always, error, never
-my $notify = $backup->prop('notify') || 'error';
-my $notify_to = $backup->prop('notifyTo') || 'root';
-my $notify_from = $backup->prop('notifyFrom') || 'root';
-my $logFile = $backup->prop('LogFile') || '/var/log/last-backup.log';
+use constant MAX_TIME => 300;
+use constant DEBUG => 0;
+
+sub print_help
+{
+    print "Usage $0 [-b <backup_name>] [-h]\n";
+    print "  -b : specify the name of backup to use\n";
+    print "  -h : show this help\n";
+}
+
+my %options=();
+getopts("hb:", \%options);
+my $help = $options{h};
+my $name = $options{b} || '';
+
+if ($help)
+{
+  print_help();
+  exit(0);
+}
+
+my $backup;
+my $program;
 my $status;
 my %du;
+my $timeout = 0;
+my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
+if ($name eq '') {
+   $backup = $conf->get('backup-data');
+   $program = $backup->prop('Program') || 'duplicity';
+   out("Backup: backup-data");
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backup = $db->get($name) || die("No backup '$name' found");
+   $program = $backup->prop('type') || 'duplicity';
+   out("Backup: $name");
+}
 my $duLogFile = '/var/lib/nethserver/backup/disk_usage';
 
-$backup = new NethServer::BackupData($notify, $notify_to, $notify_from);
+$backup = new NethServer::BackupData();
 
-if ($backup->is_running('backup-data')) {
-    print "Another backup is already running.\n";
-    exit 1;
-}
-
-# remove log file
-if ( -e $logFile) {
-   unlink($logFile);
-}
-
-$backup->cleanup_notification();
-$backup->notify("===== Report for data backup =====\n");
 
 my $start = time;
-$backup->notify("Backup started at %s", strftime('%F %T',localtime));
-$backup->logger("START","Backup data started");
+out("Backup started at %s", strftime('%F %T',localtime));
 
-if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-data)))
-{
-    $backup->notify("Pre backup scripts status: ERROR");
-    $backup->bad_exit("Event pre-backup-data failed", $status>>8);
-}
-$backup->logger("STEP","pre-backup-done done");
-$backup->notify("Pre backup scripts status: SUCCESS");
+# if there is a pre-backup-data running, wait for it
+do {
+    sleep(1);
+    $timeout++;
+    if ($timeout >= MAX_TIME) {
+        error("Timeout while waiting pre-backup-data");
+    }
+} while ($backup->is_running('/sbin/e-smith/signal-event pre-backup-data',1));
 
-if ($status = system("/etc/e-smith/events/actions/backup-data-$program"))
-{
-    $backup->notify("Backup script status: ERROR");
-    $backup->bad_exit("Action backup-data-$program failed", $status>>8, $logFile);
-}
-$backup->logger("STEP","backup-data-$program done");
-
-if ($status = system(qw(/sbin/e-smith/signal-event post-backup-data)))
-{
-    $backup->notify("Post backup scripts status: ERROR");
-    $backup->bad_exit("Event post-backup-data failed", $status>>8);
-}
-$backup->notify("Post backup scripts status: SUCCESS");
-
-$backup->logger("SUCCESS","Backup done");
-$backup->notify("Backup status: SUCCESS");
-$backup->notify("Backup ended at %s", strftime('%F %T',localtime));
-my $duration = time - $start;
-$backup->notify("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
-
-# disk usage stats
-if ( open(FILE, "<$duLogFile") ) {
-    %du = %{decode_json(join('', <FILE>))};
-    close(FILE);
-    if ($du{'size'}) { $du{'size'} = format_bytes($du{'size'}*1024); }
-    if ($du{'used'}) { $du{'used'} = format_bytes($du{'used'}*1024); }
-    if ($du{'avail'}) { $du{'avail'} = format_bytes($du{'avail'}*1024); }
-    if ($du{'pcent'}) { $du{'pcent'} .= '%'; }
+# if there are other backup still running, no need to execute pre-backup-data again
+if (!$backup->is_running('backup-data')) {
+    if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-data)))
+    {
+        error("Event pre-backup-data: FAIL");
+    }
+    out("Pre backup scripts status: SUCCESS");
 } else {
-    warn("[WARNING] Could not open $duLogFile\n");
+    out("Pre backup scripts status: SKIPPED (concurrent backup is running)");
 }
-$backup->notify("\nDisk Usage:\n%10s %10s %10s %8s", 'Size', 'Used', 'Available', 'Use%');
-$backup->notify("%10s %10s %10s %8s", $du{'size'}||'-', $du{'used'}||'-', $du{'avail'}||'-', $du{'pcent'}||'-');
 
+if ($status = system("/etc/e-smith/events/actions/backup-data-$program $name"))
+{
+    error("Action 'backup-data-$program $name': FAIL");
+}
+out("Action 'backup-data-$program $name': SUCCESS");
 
-$backup->send_notification(0,$logFile);
+# if there are other backup still running, only last process will execute post-backup-data
+if (!$backup->is_running('backup-data')) {
+    if ($status = system(qw(/sbin/e-smith/signal-event post-backup-data)))
+    {
+        error("Event post-backup-data: FAIL");
+    }
+    out("Post backup scripts status: SUCCESS");
+} else {
+    out("Post backup scripts status: SKIPPED (concurrent backup is running)");
+}
+
+out("Backup status: SUCCESS");
+out("Backup ended at %s", strftime('%F %T',localtime));
+my $duration = time - $start;
+out("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
+
+if ($name eq '') {
+    # disk usage stats
+    if ( open(FILE, "<$duLogFile") ) {
+        %du = %{decode_json(join('', <FILE>))};
+        close(FILE);
+        if ($du{'size'}) { $du{'size'} = format_bytes($du{'size'}*1024); }
+        if ($du{'used'}) { $du{'used'} = format_bytes($du{'used'}*1024); }
+        if ($du{'avail'}) { $du{'avail'} = format_bytes($du{'avail'}*1024); }
+        if ($du{'pcent'}) { $du{'pcent'} .= '%'; }
+    } else {
+        warn("[WARNING] Could not open $duLogFile\n");
+    }
+    out("\nDisk Usage:\n%10s %10s %10s %8s", 'Size', 'Used', 'Available', 'Use%');
+    out("%10s %10s %10s %8s", $du{'size'}||'-', $du{'used'}||'-', $du{'avail'}||'-', $du{'pcent'}||'-');
+}
 
 
 exit 0;
@@ -117,4 +145,16 @@ sub format_bytes {
     }
 
     return wantarray ? ($size, $units->[$exp]) : sprintf("%.2f %s", $size, $units->[$exp]);
+}
+
+
+sub out {
+    my $msg = shift;
+    print sprintf("$msg\n",@_);
+}
+
+sub error {
+    out(@_);
+    out("Backup status: FAIL");
+    exit 1;
 }

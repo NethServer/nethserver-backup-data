@@ -27,15 +27,17 @@ use Getopt::Std;
 
 sub print_help
 {
-    print "Usage $0 [-t <days>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
-    print "  -t : specify the time from which to restore or list files\n";
+    print "Usage $0 [-t <days>] [-b <backup_name>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
+    print "  -t : specify the time or the snapshot from which to restore or list files\n";
+    print "  -b : specify the name of backup to restore\n";
     print "  -h : show this help\n";
 }
 
 my %options=();
-getopts("ht:", \%options);
+getopts("ht:b:", \%options);
 my $help = $options{h};
 my $time = $options{t} || '';
+my $name = $options{b} || '';
 
 if ($help)
 {
@@ -56,26 +58,46 @@ foreach (@ARGV) {
 }
 
 my $confdb = esmith::ConfigDB->open;
-my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+my $backupwk;
+my $program;
+if ($name eq '') {
+   $backupwk = $confdb->get('backup-data');
+   $program = $backupwk->prop('Program') || 'duplicity';
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backupwk = $db->get($name) || die("No backup '$name' found");
+   $program = $backupwk->prop('type');
+}
+
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 
 
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
-   system("/etc/e-smith/events/actions/mount-$VFSType");
-
-   my @args = ("/etc/e-smith/events/actions/restore-data-duplicity");
-   if ($time) {
-       push(@args, "-t");
-       push(@args, $time);
-   }
-   push(@args,  $dst_path);
-   foreach (@files) {
-       push(@args, $_);
-   }
-   system(@args);
-
-   system("/etc/e-smith/events/actions/umount-$VFSType");
+if (-x "/etc/e-smith/events/actions/mount-$VFSType") {
+    system("/etc/e-smith/events/actions/mount-$VFSType $name")
 }
 
-exit (0);
+my @args = ("/etc/e-smith/events/actions/restore-data-$program");
+if ($time) {
+    push(@args, "-t");
+    push(@args, $time);
+}
+if ($name) {
+    push(@args, "-b");
+    push(@args, $name);
+}
+push(@args,  $dst_path);
+foreach (@files) {
+    push(@args, $_);
+}
+my $ret = system(@args);
+
+if (-x "/etc/e-smith/events/actions/umount-$VFSType") {
+    system("/etc/e-smith/events/actions/umount-$VFSType $name");
+}
+
+if ($ret > 0) {
+    exit 1;
+} else {
+    exit 0;
+}
 

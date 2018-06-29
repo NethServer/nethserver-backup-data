@@ -26,11 +26,6 @@ use NethServer::Backup;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
-use constant LOG_FILE => "/var/log/backup-data.log";
-use constant NOTIFICATION_FILE => "/tmp/backup-data-notification";
-use constant CONF_DIR => "/etc/backup-data.d/";
-
-
 @ISA = qw(NethServer::Backup);
 
 =head1 NAME
@@ -41,6 +36,23 @@ NethServer::BackupData - interface backup/restore of data (including configurati
 
     use NethServer::BackupData;
     my $backup = new NethServer::BackupData();
+    @include_data_files = $backup->includes($backup->get_config_dir());
+
+=head2 new
+
+This is the class constructor which sets the configuration directory.
+
+=cut
+
+sub new
+{
+    my $class = shift;
+    my $self = {
+        config_dir => "/etc/backup-data.d/",
+    };
+    $self = bless $self, $class;
+    return $self;
+}
 
 
 =head1 DESCRIPTION
@@ -49,37 +61,3 @@ This module provides an interface to the backup/restore of data (including confi
 
 =cut
 
-=head2 new
-
-This is the class constructor which sets the log file.
-
-=cut
-
-sub new
-{
-    my $class = shift;
-    my $notify = shift || 'error';
-    my $notify_to = shift || '';
-    my $notify_from = shift || 'root';
-    my $self = {
-        _log_file => LOG_FILE,
-        _notify => $notify,
-        _notify_to => $notify_to,
-        _notify_from => $notify_from,
-        _notification_file => NOTIFICATION_FILE,
-    };
-    $self = bless $self, $class;
-    $self->{_log_lines} = $self->_count_log_lines();
-
-    return $self;
-}
-
-
-
-=head1 AUTHOR
-
-Nethsis srl <support@nethesis.it>
-
-=cut
-
-1;

@@ -1,33 +1,48 @@
 {
     $OUT = '';
 
-    # no backup-data variable prefilled because the minus character
-    use esmith::ConfigDB;
-    my $confdb = esmith::ConfigDB->open;
-    my $backup = $confdb->get('backup-data') or die "No backup-data db entry found\n";
-    my $status = $backup->prop('status') || 'enabled';
+    sub cron {
 
+	# configure backup time and reminder times from the configuration db
+        my $backupTime = shift;
+        my $name = shift || '';
+        my $backupMin;
+        my $backupHour;
+        my $backupCron = '';
+        my $opt = '';
 
+        if ($name eq '') {
+            ($backupHour, $backupMin) = split (":", $backupTime, -1);
+            $backupMin =~ s/00/0/;
+            $backupCron .= "$backupMin $backupHour * * *"
+        } else {
+            $backupCron .= $backupTime
+        }
+
+        # remove leading zeros from minutes
+
+        $OUT .="$backupCron root /sbin/e-smith/backup-data-wrapper $name\n";
+    }
+
+    # Default backup-data
+    my $status = ${'backup-data'}{'status'} || 'enabled';
     if ($status eq 'enabled')
     {
-	# configure backup time and reminder times from the configuration
-	# database
-
-	my $backupMin;
-	my $backupHour;
-
-	my $backupTime = $backup->prop('BackupTime') || "1:00";
-
-	($backupHour, $backupMin) = split (":", $backupTime, -1);
-
-	# remove leading zeros from minutes
-
-	$backupMin =~ s/00/0/;
-
-	$OUT .="$backupMin $backupHour * * * root /sbin/e-smith/backup-data";
+        cron(${'backup-data'}{'BackupTime'} || "1:00");
     }
     else
     {
 	$OUT .= "# Backup of data is disabled";
+    }
+
+    # Extra backups
+    use esmith::ConfigDB;
+    my $db = esmith::ConfigDB->open_ro('backups');
+    foreach my $backup ($db->get_all()) {
+        my $status = $backup->prop('status') || 'disabled';
+        my $time = $backup->prop('BackupTime') || "";
+        next if ($status eq 'disabled' || $time eq '');
+
+        cron($time, $backup->key);
     }
 }
