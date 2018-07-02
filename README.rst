@@ -7,7 +7,7 @@ This module implements data backup for NethServer using different engines.
 Available engines:
 
 - duplicity: execute a full backup once a week, an incremental snapshot all other days of the week. Compression is enabled by default, encryption is not currently supported.
-  It supports only storage backend which can be mounted on a local directory.  Used also for the standard backup.
+  It supports only storage backend which can be mounted on a local directory.  Used also for the primary backup.
 - restic: always execute incremental backups using file deduplication. Encryption is always enabled, compression is not implemented.
   It supports local and remote backends.
 - rsync: Time Machine-style backup using rsync. Very fast and reliable, the destination contains just regular files which can be easily accessed.
@@ -15,8 +15,8 @@ Available engines:
 
 The ``nethserver-backup-data`` package requires ``nethserver-backup-config``.
 
-Standard backup
-===============
+Primary backup
+==============
 
 It uses the key ``backup-data`` inside ``configuration`` database.
 
@@ -54,10 +54,10 @@ Supported VFSType:
   When the backup is started, the system will search for an USB device with the filesystem label saved in ``USBLabel``.
 * ``webdav`` : save the backup on a webDAV server. When using a secure connection make sure the target webDAV server has a valid SSL certificate, otherwise the system will fail mounting the filesystem.
 
-Change standard backup engine
------------------------------
+Change primary backup engine
+----------------------------
 
-As default, duplicity is used for the standard backup.
+As default, duplicity is used for the primary backup.
 If you whish to change the engine to ``restic`` or ``rsync``, change the ``Program`` peroperty accordingly.
 
 Example for restic: ::
@@ -81,10 +81,11 @@ Every backup record is saved inside the ``backups`` database. Each record can ha
 
 * ``duplicity``: the backup is executed using duplicity
 * ``restic``: the backup is performed using restic
+- ``rsync``: the backup is performed using rsync with time machine behavior
 
 The key of the record is referred as the backup ``name``.
 
-Some properties are common to both backends and have the same behavior described under "Standard backup" section, the only exception is ``BackupTime``:
+Some properties are common to both backends and have the same behavior described under "Primary backup" section, the only exception is ``BackupTime``:
 
 * ``status``
 * ``BackupTime``: time of the scheduled backup. Must be in the cron-style syntax: Es. ``15 7 * * *``. Runs on 7:15.
@@ -103,7 +104,7 @@ Each record should contains only the properties relative to the storage backend 
 Duplicity
 ---------
 
-Properties valid only for duplicity engine (see "Standard backup" section):
+Properties valid only for duplicity engine (see "Primary backup" section):
 
 * ``Type``
 * ``FullDay``
@@ -148,8 +149,8 @@ Each script is invoked with the following parameters:
 - backup exit code
 
 
-Standard backup
----------------
+Primary backup
+--------------
 
 To start the backup, execute: ::
 
@@ -191,13 +192,13 @@ In the *pre-backup-data* event the disk analyzer (Duc) make an indexing of files
 The name of the actions is ``/etc/e-smith/events/actions/nethserver-restore-data-duc-index`` and it compose the JSON file to create
 the navigable graphic tree.
 
-The indexing feature is limited to standard backup.
+The indexing feature is limited to primary backup.
 
 Customization
 =============
 
-Standard backup
----------------
+Primary backup
+--------------
 
 Add custom include/exclude inside following files:
 
@@ -207,13 +208,13 @@ Add custom include/exclude inside following files:
 Multiple backup
 ---------------
 
-The multiple backup read the same configuration of the standard one.
+The multiple backup read the same configuration of the primary one.
 List of saved and excluded files can be customized using two special files (where ``name`` is the name of the backup):
 
 - ``/etc/backup-data/<name>.include``
 - ``/etc/backup-data/<name>.exclude``
 
-Both file will override the list on included and excluded files from the standard backup.
+Both file will override the list on included and excluded files from the primary backup.
 
 Retention policy
 ================
@@ -233,8 +234,8 @@ The main command is ``/sbin/e-smith/restore-data`` which starts the restore proc
 * *restore-data-<program>* action: search for a backup in the configuration database and restore it
 * *post-restore-data* event: used to inform programs about new available data (eg. mysql restart)
 
-Standard backup
-~~~~~~~~~~~~~~~
+Primary backup
+~~~~~~~~~~~~~~
 
 To restore all data into the original location, use: ::
 
@@ -273,7 +274,7 @@ reads the list of paths to restore and creates a executable command to restore t
 List backup contents
 ====================
 
-The list of file inside the standard backup can be obtained using: ::
+The list of file inside the primary backup can be obtained using: ::
 
   /sbin/e-smith/backup-data-list
 
