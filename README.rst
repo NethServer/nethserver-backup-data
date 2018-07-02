@@ -2,7 +2,7 @@
 nethserver-rsync
 =================
 
-Implement Time machine-stule backup engine using ``rsync_tmbackup.sh`` (https://github.com/laurent22/rsync-time-backup),
+Implement Time machine-style backup engine using ``rsync_tmbackup.sh`` (https://github.com/laurent22/rsync-time-backup),
 based on rsync (https://rsync.samba.org/). It can be used as duplicity replacement for standard
 backup or as multiple backup.
 
