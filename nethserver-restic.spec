@@ -10,7 +10,6 @@ Source0: %{name}-%{version}.tar.gz
 Source1: https://github.com/restic/restic/releases/download/v%{restic_release}/restic_%{restic_release}_linux_amd64.bz2
 Source2: https://raw.githubusercontent.com/restic/restic/master/LICENSE
 
-Requires: nethserver-backup-data
 Requires: sshpass
 
 BuildRequires: perl
