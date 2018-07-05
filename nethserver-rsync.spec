@@ -10,8 +10,6 @@ Source0: %{name}-%{version}.tar.gz
 Source1: https://raw.githubusercontent.com/laurent22/rsync-time-backup/%{tmbackup_commit}/rsync_tmbackup.sh
 BuildArch: noarch
 
-Requires: nethserver-backup-data
-
 BuildRequires: perl
 BuildRequires: nethserver-devtools 
 
