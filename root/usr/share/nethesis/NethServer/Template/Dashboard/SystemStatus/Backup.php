@@ -22,7 +22,7 @@ if (!$view['backup_status']['vfs']) {
     echo "<dt>".$T('vfs_label')."</dt><dd>"; echo strtoupper($T($view['backup_vfs'])); echo "</dd>";
     echo "<h3 class='backup'>".$T('last_backup')."</h3>"; 
     echo "<dt>".$T('result_label')."</dt><dd class='backup-".strtolower($view['backup_result'])."'>"; echo $T($view['backup_result']); echo "</dd>";
-    echo "<dt>".$T('end_label')."</dt><dd>"; echo date("H:i",$view['backup_end']); echo "</dd>";
+    echo "<dt>".$T('end_label')."</dt><dd>"; echo $view['backup_end']?date("H:i",$view['backup_end']):"-"; echo "</dd>";
     if ( strlen($view['backup_size']) && strlen($view['backup_used']) && strlen($view['backup_avail']) ) {
         echo "<dt>".$T('usage_label')."</dt><dd>".formatSize($view['backup_used']*1024) ." / " . formatSize($view['backup_size']*1024)."</dd>";
         echo "<dt>".$T('avail_label')."</dt><dd>".formatSize($view['backup_avail']*1024)."</dd>";

@@ -34,11 +34,16 @@ class Backup extends \Nethgui\Controller\AbstractController
 
     private function readBackup()
     {
-        $status_file = "/var/spool/backup/status-backup-data";
-        $status = file_get_contents($status_file);
         $backup = array();
-        $backup['result'] = $status == 0 ? 'SUCCESS' : 'ERROR';
-        $backup['end'] = filemtime($status_file);;
+        $status_file = "/var/spool/backup/status-backup-data";
+        if (file_exists($status_file)) {
+            $status = file_get_contents($status_file);
+            $backup['end'] = filemtime($status_file);;
+            $backup['result'] = $status == 0 ? 'SUCCESS' : 'ERROR';
+        } else {
+            $backup['result'] = "-";
+            $backup['end'] = "";
+        }
         $br = $this->getPlatform()->getDatabase('configuration')->getKey('backup-data');
         $backup['vfs'] = $br['VFSType'] ? $br['VFSType'] : '-';
         $backup['status'] = $br['status'];
