@@ -42,7 +42,7 @@ Properties:
 
 Example: ::
 
-  db backups set t1 rsync status enabled BackupTime '15 7 * * *' CleanupOlderThan default Notify error NotifyFrom '' NotifyTo root@localhost \
+  db backups set t1 rsync status enabled BackupTime '15 7 * * *' Notify error NotifyFrom '' NotifyTo root@localhost \
   VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 
   echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
 
@@ -56,7 +56,6 @@ Example: ::
 
  t2=rsync
     BackupTime=1 7 * * *
-    CleanupOlderThan=1:1 30:7 365:30
     Notify=error
     NotifyFrom=
     NotifyTo=root@localhost
@@ -68,7 +67,6 @@ Example: ::
     status=enabled
  t3=rsync
     BackupTime=15 7 * * *
-    CleanupOlderThan=default
     NFSHost=192.168.1.234
     NFSShare=/test
     Notify=error
@@ -78,7 +76,6 @@ Example: ::
     status=enabled
  t4=rsync
     BackupTime=15 7 * * *
-    CleanupOlderThan=default
     Notify=error
     NotifyFrom=
     NotifyTo=root@localhost
@@ -87,7 +84,6 @@ Example: ::
     status=enabled
  t5=rsync
     BackupTime=*/20 7 * * *
-    CleanupOlderThan=default
     Notify=error
     NotifyFrom=
     NotifyTo=root@localhost
