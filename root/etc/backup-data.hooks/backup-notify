@@ -51,6 +51,9 @@ if [ "$notify" == "always" ] || [ "$notify" == "error" -a $exit_code -gt 0  ]; t
 To: $recipient
 From: $sender
 Subject: $subject
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
 
 $output
 
