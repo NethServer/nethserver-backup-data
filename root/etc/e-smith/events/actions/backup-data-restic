@@ -55,7 +55,7 @@ if ($restic_repository eq '') {
     error("Can't initialize restic repository");
 }
 
-$opts .= " --repo $restic_repository";
+$opts .= " --repo $restic_repository --tag $name";
 
 # Check if repository is already initialized, otherwise do it
 my $ret = system(CMD." $opts snapshots &>/dev/null");
@@ -108,7 +108,7 @@ if ($ret != 0) {
 }
 
 if ($cleanup ne 'never') {
-    $ret = system(CMD." $opts forget --keep-within $cleanup");
+    $ret = system(CMD." $opts forget --prune --group-by host,tags --tag $name --keep-within $cleanup");
     if ($ret > 0) {
         error("Cleanup failed");
     }
