@@ -32,7 +32,7 @@
     }
     else
     {
-	$OUT .= "# Backup of data is disabled";
+	$OUT .= "# Backup of data is disabled\n";
     }
 
     # Extra backups
