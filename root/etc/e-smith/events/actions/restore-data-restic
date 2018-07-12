@@ -1,0 +1,107 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+use strict;
+use esmith::ConfigDB;
+use NethServer::BackupData;
+use NethServer::BackupConfig;
+use NethServer::Restic;
+use File::Path  qw(make_path);
+use File::Basename;
+use Getopt::Std;
+
+sub print_help
+{
+    print "Usage $0 [-t <days>] [-b <backup_name>] [-h] <target_dir> <file_to_restore> ... <file_to_restore>\n";
+    print "  -t : specify the snapshot from which to restore or list files\n";
+    print "  -b : specify the name of backup to restore\n";
+    print "  -h : show this help\n";
+}
+
+my %options=();
+getopts("ht:b:", \%options);
+my $help = $options{h};
+my $time = $options{t} || 'latest';
+my $name = $options{b} || '';
+
+if ($help)
+{
+  print_help();
+  exit(0);
+}
+
+use constant CMD => '/usr/bin/restic';
+
+my $position = shift @ARGV || '/';
+my @files = @ARGV;
+
+my $record;
+my $confdb = esmith::ConfigDB->open;
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
+
+if ($name eq '') {
+   $record = $confdb->get('backup-data');
+   $name = 'backup-data';
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $record = $db->get($name) || die("No backup '$name' found");
+}
+
+my $type = $record->prop('Type') || 'full';
+my $forceFull = $record->prop('ForceFull') || 'enabled';
+my $VFSType = $record->prop('VFSType') || 'UNKNOWN';
+my $mntdir = $record->prop('Mount') || '/mnt/backup';
+my $src = "";
+my $opts = NethServer::Restic::initOptions($name);
+my $restic_repository = NethServer::Restic::prepareRepository($systemname, $record);
+my $backup = new NethServer::BackupData($name);
+
+
+if ($restic_repository eq '') {
+    print("Can't initialize restic repository");
+    exit 1;
+}
+
+$opts .= " --repo $restic_repository";
+
+my $cmd = CMD." $opts restore $time --target $position ";
+
+if (@files) {  # restore selected files
+    foreach (@files) {
+        $cmd .= " --include '$_' "
+    } 
+}
+
+my $ret = system($cmd);
+
+if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+   system("/etc/e-smith/events/actions/umount-$VFSType $name");
+}
+
+if ($ret != 0) {
+   print("Restore failed");
+   exit 1;
+}
+
+exit (0);
+
