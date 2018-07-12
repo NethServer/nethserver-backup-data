@@ -11,6 +11,7 @@ BuildRequires: nethserver-devtools
 Requires: cifs-utils, nfs-utils, duplicity, davfs2
 Requires: nethserver-backup-config, nethserver-restic, nethserver-rsync
 Requires: sshpass
+Requires: restic
 
 %description
 NethServer backup of config and data files
@@ -61,7 +62,6 @@ rm -rf %{buildroot}
 
 * Wed Apr 12 2017 Davide Principi <davide.principi@nethesis.it> - 1.3.0-1
 - Backup data: basic webDAV support for backups and storage stats - NethServer/dev#5235
-
 
 * Tue Jan 03 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.2.3-1
 - Backup-data not run after system crash - Bug NethServer/dev#5179
