@@ -16,7 +16,8 @@
         $OUT .= "\tPort $port\n";
         $OUT .= "\tUser $user\n";
         $OUT .= "\tIdentityFile /var/lib/nethserver/backup/backup.key\n";
-        $OUT .= "\tUserKnownHostsFile=/dev/null\n";
-        $OUT .= "\tStrictHostKeyChecking=no\n";
+        $OUT .= "\tUserKnownHostsFile /dev/null\n";
+        $OUT .= "\tStrictHostKeyChecking no\n";
+        $OUT .= "\tLogLevel ERROR\n";
     }
 }
