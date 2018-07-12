@@ -12,7 +12,7 @@ URL: %{url_prefix}/%{name}
 BuildArch: noarch
 BuildRequires: nethserver-devtools
 Requires: cifs-utils, nfs-utils, duplicity, davfs2
-Requires: nethserver-backup-config, nethserver-restic, nethserver-rsync
+Requires: nethserver-backup-config
 Requires: sshpass
 Requires: restic
 
