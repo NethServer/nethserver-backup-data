@@ -1,0 +1,84 @@
+#!/usr/bin/perl -w
+#
+#
+# Copyright (C) 2018 Nethesis S.r.l.
+# http://www.nethesis.it - nethserver@nethesis.it
+#
+# This script is part of NethServer.
+#
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+#
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see COPYING.
+#
+
+
+use strict;
+use esmith::ConfigDB;
+use NethServer::Rsync;
+
+use Getopt::Std;
+
+sub print_help
+{
+    print "Usage $0 [-f] [-b <backup_name>] [-h]\n";
+    print "  -f : print in parsable format (not implemented)\n";
+    print "  -b : specify the name of backup to list\n";
+}
+
+my %options=();
+getopts("hfb:", \%options);
+my $help = $options{h};
+my $formatted = $options{f} || '';
+my $name = $options{b} || '';
+
+my $backup;
+my $confdb = esmith::ConfigDB->open || die("Could not open config db\n");
+my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
+$systemname = $systemname->prop('type');
+if ($name eq '') {
+   $backup = $confdb->get('backup-data');
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backup = $db->get($name) || die("No backup '$name' found");
+}
+my $VFSType = $backup->prop('VFSType') || die("Invalid VFSType");
+my $repo = NethServer::Rsync::prepareRepository($name, $backup);
+
+if ($VFSType eq 'sftp') {
+    my $host = $backup->prop('SftpHost');
+    my $user = $backup->prop('SftpUser');
+    my $dir = $backup->prop('SftpDirectory');
+
+    system("ssh $user\@$host 'cd $dir; find . ! -name 'backup.marker' | cut -d'.' -f2- '");
+} else {
+
+    if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+        my $mount;
+        if ($name eq '') {
+            $name = '';
+            $mount = $backup->prop('Mount') || '/mnt/backup';
+        } else {
+           $mount = "/mnt/backup-$name";
+        }
+
+        my $ret = system("/etc/e-smith/events/actions/mount-$VFSType $name");
+        if ($ret > 0) {
+            die("Can't mount backup directory");
+        }
+        system('cd '.$mount.'/'.$systemname.' ; find . ! -name "backup.marker" | cut -d"." -f2-');
+    }
+}
+
+
+if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+    system("/etc/e-smith/events/actions/umount-$VFSType $name");
+}
