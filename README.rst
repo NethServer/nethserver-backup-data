@@ -206,7 +206,7 @@ Add custom include/exclude inside following files:
 * /etc/backup-data.d/custom.exclude
 
 Multiple backups
----------------
+----------------
 
 The multiple backups read the same configuration of the single backup.
 List of saved and excluded files can be customized using two special files (where ``name`` is the name of the backup):
@@ -328,7 +328,7 @@ Supported ``VFSType`` :
 
 
 sftp
-^^^^
+~~~~
 
 SFTP
 
@@ -351,7 +351,7 @@ Example: ::
 The temporary file containing the password will be deleted at the end of ``nethserver-backup-data-save`` event.
 
 s3
-^^
+~~
 
 Amazon S3 (https://aws.amazon.com/s3/) compatibile (like https://www.minio.io/).
 
@@ -373,7 +373,7 @@ How to setup Amazon S3 access keys: https://restic.readthedocs.io/en/stable/080_
 
 
 b2
-^^
+~~
 
 Backblaze B2 (https://www.backblaze.com/b2/cloud-storage.html)
 
@@ -391,7 +391,7 @@ Example: ::
 
 
 Rest
-^^^^
+~~~~
 
 Restic REST server (https://github.com/restic/rest-server)
 
