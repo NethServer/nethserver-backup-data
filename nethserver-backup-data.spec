@@ -1,9 +1,12 @@
+%define tmbackup_commit 487fd112c11f29b25f2c4a34d0cccf36a713a97e
+
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
 Version: 1.3.4
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
+Source1: https://raw.githubusercontent.com/laurent22/rsync-time-backup/%{tmbackup_commit}/rsync_tmbackup.sh
 URL: %{url_prefix}/%{name}
 
 BuildArch: noarch
@@ -33,7 +36,10 @@ mv -v NethServer root%{perl_vendorlib}
 %install
 rm -rf %{buildroot}
 (cd root ; find . -depth -print | cpio -dump %{buildroot})
-%{genfilelist} %{buildroot} > %{name}-%{version}-%{release}-filelist
+mkdir -p %{buildroot}/usr/bin
+mv %{SOURCE1} %{buildroot}/usr/bin/rsync_tmbackup
+echo %{rsync_release} > RESTIC-RELEASE
+%{genfilelist} --file /usr/bin/rsync_tmbackup 'attr(0755,root,root)'  %{buildroot} > %{name}-%{version}-%{release}-filelist
 
 %files -f %{name}-%{version}-%{release}-filelist
 %defattr(-,root,root)
