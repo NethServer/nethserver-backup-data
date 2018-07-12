@@ -55,13 +55,15 @@ if ($restic_repository eq '') {
     error("Can't initialize restic repository");
 }
 
-$opts .= " --repo $restic_repository --tag $name";
+$opts .= " --repo $restic_repository";
 
 # Check if repository is already initialized, otherwise do it
 my $ret = system(CMD." $opts snapshots &>/dev/null");
 if ($ret != 0) {
     system(CMD." $opts init");
 }
+
+$opts .= " --tag $name";
 
 # Read include and exclude from default directory or customized file
 my @include_data_files;
