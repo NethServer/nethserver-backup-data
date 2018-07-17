@@ -1,3 +1,4 @@
+/var/lib/nethserver/backup/restic/
 /var/lib/nethserver/backup/duplicity/
 /var/lib/nethserver/db
 /root/.ssh
