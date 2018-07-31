@@ -33,21 +33,20 @@ use File::Path qw(make_path);
 
 sub ldie;
 
-# The action can be invoked from pre-backup-data event or directly from a script.
-# If invoked from a script, just pass the name of the backup.
-my $name = shift || '';
+# The action must be invoked at least with 1 parameter: an event name (could be a fake one)
+# If a second parameter is passed, it must be a valid key inside the backups db
+my $event = shift || die("No event given");
+my $name = shift || 'backup-data';
 
-my $backupwk;
-our $mntdir;
-my $confdb = esmith::ConfigDB->open;
-if ($name eq 'pre-backup-data' || $name eq 'pre-restore-data' || $name eq '') {
-   $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
-   $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+my $db;
+
+if ($name eq 'backup-data') {
+   $db = esmith::ConfigDB->open_ro();
 } else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backupwk = $db->get($name) || die("No backup '$name' found");
-   $mntdir = "/mnt/backup-$name";
+   $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
 }
+my $mntdir = "/mnt/backup-$name";
+my $backupwk = $db->get($name) || die("No '$name' db entry found\n");
 
 my $smbhost = $backupwk->prop('SMBHost');
 my $smbshare = $backupwk->prop('SMBShare');
