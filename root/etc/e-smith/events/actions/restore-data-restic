@@ -95,7 +95,7 @@ if (@files) {  # restore selected files
 my $ret = system($cmd);
 
 if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
-   system("/etc/e-smith/events/actions/umount-$VFSType $name");
+   system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
 if ($ret != 0) {

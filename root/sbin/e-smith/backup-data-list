@@ -68,13 +68,13 @@ my $mntdir = $backup->prop('Mount') || '/mnt/backup';
 
 
 if (-x "/etc/e-smith/events/actions/mount-$VFSType") {
-    system("/etc/e-smith/events/actions/mount-$VFSType $name");
+    system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
 }
 
 my $ret = system("/etc/e-smith/events/actions/backup-data-list-$program $opts");
 
 if (-x "/etc/e-smith/events/actions/umount-$VFSType") {
-    system("/etc/e-smith/events/actions/umount-$VFSType $name");
+    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
 if ($ret > 0) {

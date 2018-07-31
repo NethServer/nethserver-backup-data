@@ -61,11 +61,11 @@ $systemname = $systemname->prop('type');
 
 if ($name eq '') {
    $backupwk = $confdb->get('backup-data');
-   $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+   $mntdir = '/mnt/backup-backup-data';
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $backupwk = $db->get($name) || die("No backup '$name' found");
-   $mntdir = $backupwk->prop('Mount') || "/mnt/backup-$name";
+   $mntdir = "/mnt/backup-$name";
 }
 
 my $type = $backupwk->prop('Type') || 'full';
@@ -88,7 +88,7 @@ my $ret;
 my $cmd = CMD." restore $opts ";
 
 if ( $name ne '' && -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
-   system("/etc/e-smith/events/actions/mount-$VFSType $name");
+   system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
 }
 
 if (@files) {  # restore selected files
@@ -118,7 +118,7 @@ if ($ret != 0) {
 }
 
 if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
-   system("/etc/e-smith/events/actions/umount-$VFSType $name");
+   system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
 exit (0);

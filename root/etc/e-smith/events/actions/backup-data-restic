@@ -117,7 +117,7 @@ if ($cleanup ne 'never') {
 }
 
 if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
-    system("/etc/e-smith/events/actions/umount-$VFSType $name");
+    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
 exit (0);

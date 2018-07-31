@@ -42,7 +42,7 @@ my $mntdir;
 if ($name eq '') {
    $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
    $cacheDir = "/var/lib/nethserver/backup/duplicity/";
-   $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
+   $mntdir = '/mnt/backup-backup-data';
    $dst = " file://$mntdir/$systemname ";
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
@@ -123,7 +123,7 @@ if ( ! -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
 }
 
 if ($name ne '') {
-   my $ret_mnt = system("/etc/e-smith/events/actions/mount-$VFSType $name");
+   my $ret_mnt = system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
    if ($ret_mnt > 0) {
         error("Can't mount $mntdir");
    }
@@ -154,7 +154,7 @@ if ($ret != 0) {
 }
 
 if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
-    system("/etc/e-smith/events/actions/umount-$VFSType $name");
+    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
 exit (0);

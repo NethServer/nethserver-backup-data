@@ -108,15 +108,9 @@ sub prepareRepository {
     my $VFSType = $record->prop('VFSType') || return '';
 
     if (-x "/etc/e-smith/events/actions/mount-$VFSType") {
-        my $mount;
-        if ($name eq 'backup-data') {
-            $name = '';
-            $mount = $record->prop('Mount') || '/mnt/backup';
-        } else {
-           $mount = "/mnt/backup-$name";
-        }
+        my $mount = "/mnt/backup-$name";
 
-        my $ret = system("/etc/e-smith/events/actions/mount-$VFSType $name");
+        my $ret = system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
         if ($ret > 0) {
             return "";
         }
