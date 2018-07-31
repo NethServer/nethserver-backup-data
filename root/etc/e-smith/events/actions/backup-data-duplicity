@@ -36,20 +36,17 @@ my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found
 $systemname = $systemname->prop('type');
 
 my $backupwk;
-my $logFile;
 my $cacheDir;
 my $dst;
 my $mntdir;
 if ($name eq '') {
    $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
-   $logFile = '/var/log/last-backup.log';
    $cacheDir = "/var/lib/nethserver/backup/duplicity/";
    $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
    $dst = " file://$mntdir/$systemname ";
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
    $backupwk = $db->get($name) || die("No backup '$name' found");
-   $logFile = "/var/log/last-backup-$name.log";
    $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
    $mntdir = "/mnt/backup-$name";
    $dst = " file://$mntdir/$systemname ";
@@ -153,7 +150,7 @@ if (DEBUG) {
 my $ret = system(CMD." $opts / $dst");
 
 if ($ret != 0) {
-   error("Backup failed, see $logFile for details");
+   error("Duplicity backup failed");
 }
 
 if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
