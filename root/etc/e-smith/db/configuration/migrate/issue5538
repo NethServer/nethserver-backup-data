@@ -11,6 +11,7 @@
         }
     }
     $DB->get_prop_and_delete('backup-data', 'Mount');
+    $DB->get_prop_and_delete('backup-data', 'LogFile');
 
     '';
 }
