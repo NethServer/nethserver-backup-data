@@ -312,6 +312,17 @@ Restic
 Implement backup enginge using restic (https://restic.net/), it can be used as duplicity replacement for standard
 backup or as multiple backup.
 
+In restic, cleanup operations are composed by two commands: forget, to remove a snaphost, and prune, to actually remove the data
+that was referenced by the deleted snapshot.
+The prune operation is quite slow and should be executed at least once a week.
+
+Extra options
+-------------
+
+* ``Prune``: execute the pruning on the specified time. Valid values are:
+  - ``always``: run the prune everytime at the end of backup
+  - a number between ``0`` and ``6``: run the prune on the selected week day (0 is Sunday, 1 is Monday)
+
 Storage backends
 ----------------
 
@@ -344,7 +355,7 @@ Properties:
 
 Example: ::
 
-  db backups set t1 restic status enabled BackupTime '15 7 * * *' CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost \
+  db backups set t1 restic status enabled BackupTime '15 7 * * *' CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost Prune 1 \
   VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 
   echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
 
@@ -364,7 +375,7 @@ Properties
 
 Example: ::
 
-  db backupst set t1 restic VFSType s3 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  db backupst set t1 restic VFSType s3 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled Prune always\
   S3AccessKey XXXXXXXXXXXXXXXXXXXX S3Bucket restic-demo S3Host s3.amazonaws.com S3SecretKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx status enabled
   signal-event nethserver-backup-data-save t1
 

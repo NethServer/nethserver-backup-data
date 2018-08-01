@@ -46,7 +46,10 @@ if ($name eq '') {
 
 my $restic_password = NethServer::Password::store("restic_$name"); 
 my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
-my $cleanup = lc($record->prop('CleanupOlderThan')) || 'never';
+my $cleanup = $record->prop('CleanupOlderThan') || 'never';
+$cleanup = lc($cleanup);
+my $prune = $record->prop('Prune') || '0';
+my $prune_opts = '';
 my $opts = NethServer::Restic::initOptions($name);
 my $restic_repository = NethServer::Restic::prepareRepository($systemname, $record);
 our $backup = new NethServer::BackupData();
@@ -109,8 +112,13 @@ if ($ret != 0) {
    exit 1; 
 }
 
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+if ($prune eq 'always' || $prune == $wday) {
+    $prune_opts = "--prune";
+}
+
 if ($cleanup ne 'never') {
-    $ret = system(CMD." $opts forget --prune --group-by host,tags --tag $name --keep-within $cleanup");
+    $ret = system(CMD." $opts forget $prune_opts --group-by host,tags --tag $name --keep-within $cleanup");
     if ($ret > 0) {
         error("Cleanup failed");
     }
