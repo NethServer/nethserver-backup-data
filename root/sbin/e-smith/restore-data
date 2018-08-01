@@ -64,7 +64,7 @@ $backup = new NethServer::BackupConfig($name);
 my $start = time;
 out("Restore started at %s", strftime('%F %T',localtime));
 
-if ($status = system(qw(/sbin/e-smith/signal-event pre-restore-data)))
+if ($status = system("/sbin/e-smith/signal-event pre-restore-data $name"))
 {
     error("Event pre-restore-data failed");
 }
@@ -76,7 +76,7 @@ if ($status = system($restore_action))
 }
 out("Action '$restore_action': SUCCESS");
 
-if ($status = system(qw(/sbin/e-smith/signal-event post-restore-data)))
+if ($status = system("/sbin/e-smith/signal-event post-restore-data $name"))
 {
     error("Event post-restore-data failed");
 }

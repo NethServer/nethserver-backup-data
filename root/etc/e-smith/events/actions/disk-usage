@@ -26,37 +26,35 @@ use esmith::ConfigDB;
 use NethServer::BackupData;
 use JSON;
 
+my $event = shift || exit 0;
+my $name = shift || 'backup-data';
+
+exit 0 if ($name ne 'backup-data');
+
 my $confdb = esmith::ConfigDB->open;
-my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
-my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
-my $status = $backupwk->prop('status') || 'disabled';
 my $duLogFile = '/var/lib/nethserver/backup/disk_usage';
-my $err = 0;
 my %du;
 
 my $backup = new NethServer::BackupData();
+my $mntdir = "/mnt/backup-$name";
 
+if ($backup->is_mounted($mntdir)) {
 
-if ( $status eq 'enabled' && -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
-    if ($backup->is_mounted($mntdir)) {
+    # get disk usage stats
+    if ( @du{qw(source size used avail pcent target)} = split(" ", `/bin/df -P "$mntdir" 2>/dev/null | grep "$mntdir"`) ) {
+        delete @du{'source', 'target'};
+        $du{'pcent'} = sprintf "%.2f", $du{'used'}/$du{'size'}*100;
+        $du{'pcent'} += 0;
 
-        # get disk usage stats
-        if ( @du{qw(source size used avail pcent target)} = split(" ", `/bin/df -P "$mntdir" 2>/dev/null | grep "$mntdir"`) ) {
-            delete @du{'source', 'target'};
-            $du{'pcent'} = sprintf "%.2f", $du{'used'}/$du{'size'}*100;
-            $du{'pcent'} += 0;
-
-            if ( $du{'used'} lt 0 || $du{'avail'} lt 0 ) {
-                warn("[WARNING] Unable to determine backup storage capacity.\n");
-                @du{'size', 'used', 'avail', 'pcent'} = undef;
-            }
-
-            # output disk usage to file
-            open(FILE, ">$duLogFile");
-            print FILE encode_json(\%du);
-            close(FILE);
+        if ( $du{'used'} lt 0 || $du{'avail'} lt 0 ) {
+            warn("[WARNING] Unable to determine backup storage capacity.\n");
+            @du{'size', 'used', 'avail', 'pcent'} = undef;
         }
+
+        # output disk usage to file
+        open(FILE, ">$duLogFile");
+        print FILE encode_json(\%du);
+        close(FILE);
     }
 }
 

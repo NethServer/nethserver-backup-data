@@ -73,7 +73,7 @@ my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 
 
 if (-x "/etc/e-smith/events/actions/mount-$VFSType") {
-    system("/etc/e-smith/events/actions/mount-$VFSType $name")
+    system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name")
 }
 
 my @args = ("/etc/e-smith/events/actions/restore-data-$program");
@@ -92,7 +92,7 @@ foreach (@files) {
 my $ret = system(@args);
 
 if (-x "/etc/e-smith/events/actions/umount-$VFSType") {
-    system("/etc/e-smith/events/actions/umount-$VFSType $name");
+    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
 if ($ret > 0) {

@@ -82,7 +82,7 @@ do {
 
 # if there are other backup still running, no need to execute pre-backup-data again
 if (!$backup->is_running('backup-data')) {
-    if ($status = system(qw(/sbin/e-smith/signal-event pre-backup-data)))
+    if ($status = system("/sbin/e-smith/signal-event pre-backup-data $name"))
     {
         error("Event pre-backup-data: FAIL");
     }
@@ -99,7 +99,7 @@ out("Action 'backup-data-$program $name': SUCCESS");
 
 # if there are other backup still running, only last process will execute post-backup-data
 if (!$backup->is_running('backup-data')) {
-    if ($status = system(qw(/sbin/e-smith/signal-event post-backup-data)))
+    if ($status = system("/sbin/e-smith/signal-event post-backup-data $name"))
     {
         error("Event post-backup-data: FAIL");
     }
