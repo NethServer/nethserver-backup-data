@@ -111,7 +111,7 @@ if (!$backup->is_running('backup-data')) {
 out("Backup status: SUCCESS");
 out("Backup ended at %s", strftime('%F %T',localtime));
 my $duration = time - $start;
-out("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60))%24, ($duration/60)%60, $duration%60);
+out("Time elapsed: %s hours, %s minutes, %s seconds", ($duration/(60*60)), ($duration/60)%60, $duration%60);
 
 if ($name eq '') {
     # disk usage stats
