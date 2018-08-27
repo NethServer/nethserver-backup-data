@@ -28,32 +28,41 @@ use NethServer::BackupData;
 
 use constant CMD => '/usr/bin/duplicity';
 
+# The action must be invoked at least with 1 parameter: an event name (could be a fake one)
+# If a second parameter is passed, it must be a valid key inside the backups db
+my $event = shift || die("No event given");
+my $name = shift || 'backup-data';
+
+my $opts = '';
+my $dst = "";
+my $backupwk;
+my $mntdir = '';
+my $cacheDir = '';
+
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
-my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found\n";
+
+if ($name eq 'backup-data') {
+   $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
+   $cacheDir = "/var/lib/nethserver/backup/duplicity/";
+   $mntdir = '/mnt/backup-backup-data';
+   $dst = " file://$mntdir/$systemname ";
+} else {
+   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+   $backupwk = $db->get($name) || die("No backup '$name' found");
+   $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
+   $mntdir = "/mnt/backup-$name";
+   $dst = " file://$mntdir/$systemname ";
+}
 
 my $cot = $backupwk->prop('CleanupOlderThan') || 'never';
 
 # skip all if cleanup is not set
 exit(0) unless($cot ne "never");
 
-my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-my $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
-my $opts = '';
-my $dst = "";
-
-our $backup = new NethServer::BackupData();
-
-if ( ($VFSType eq 'usb') || ($VFSType eq 'nfs') || ($VFSType eq 'cifs') || ($VFSType eq 'webdav') ) {
-   mkdir "$mntdir/$systemname";
-   $dst = " file://$mntdir/$systemname ";
-} else {
-   error("No valid VFSType: $VFSType");
-}
-
 # set duplicity cache dir
-$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/ ";
+$opts .= " --archive-dir $cacheDir ";
 my $ret = system(CMD." remove-older-than $cot $opts $dst --force");
 
 if ($ret != 0) {
