@@ -48,7 +48,7 @@ my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found
 $systemname = $systemname->prop('type');
 if ($name eq '') {
    $backup = $confdb->get('backup-data');
-   $path = "file:///mnt/backup/$systemname";
+   $path = "file:///mnt/backup-backup-data/$systemname";
    $archive = "/var/lib/nethserver/backup/duplicity/";
 } else {
    my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
