@@ -64,17 +64,16 @@ if ($VFSType eq 'sftp') {
     if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
         my $mount;
         if ($name eq '') {
-            $name = '';
-            $mount = $backup->prop('Mount') || '/mnt/backup';
+            $mount = "/mnt/backup-backup-data";
         } else {
-           $mount = "/mnt/backup-$name";
+            $mount = "/mnt/backup-$name";
         }
 
         my $ret = system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
         if ($ret > 0) {
             die("Can't mount backup directory");
         }
-        system('cd '.$mount.'/'.$systemname.' ; find . ! -name "backup.marker" | cut -d"." -f2-');
+        system('cd '.$mount.'/'.$systemname.' && find . ! -name "backup.marker" | cut -d"." -f2-');
     }
 }
 
