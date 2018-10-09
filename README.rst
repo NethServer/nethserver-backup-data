@@ -390,7 +390,7 @@ Properties:
 
 * ``B2AccountId``: B2 account name
 * ``B2AccountKey``: B2 account secret key
-* ``B2Bucket``: B2 bucker (directory)
+* ``B2Bucket``: B2 bucket (directory)
 
 Example: ::
   
