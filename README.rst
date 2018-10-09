@@ -101,26 +101,6 @@ Some properties are common to both backends and have the same behavior described
 
 Each record should contains only the properties relative to the storage backend selected with ``VFSType``.
 
-Duplicity
----------
-
-Properties valid only for duplicity engine (see "Single backup" section):
-
-* ``Type``
-* ``FullDay``
-* ``VolSize``
-
-Supported ``VFSType`` :
-
-* ``usb``
-* ``cifs``
-* ``nfs``
-
-Restic
-------
-
-See ``nethserver-restic-package``.
-
 Backup
 ======
 
@@ -290,6 +270,23 @@ We plan to support all duplicity features in the near future.
 
 See http://duplicity.nongnu.org/ for more information.
 
+Extra options
+-------------
+
+Properties valid only for duplicity engine, see "Single backup" section for an explanation of each property:
+
+* ``Type``
+* ``FullDay``
+* ``VolSize``
+
+Storage backends
+----------------
+
+Supported ``VFSType`` :
+
+* ``usb``
+* ``cifs``
+* ``nfs``
 
 Listing backup sets
 -------------------
@@ -468,8 +465,8 @@ Then configure it for NethServer: ::
   signal-event firewall-adjust
 
 
-nethserver-rsync
-================
+rsync
+=====
 
 Implement Time machine-style backup engine using ``rsync_tmbackup.sh`` (https://github.com/laurent22/rsync-time-backup),
 based on rsync (https://rsync.samba.org/). It can be used as duplicity replacement for standard
