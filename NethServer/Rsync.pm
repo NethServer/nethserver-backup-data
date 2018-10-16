@@ -64,6 +64,12 @@ sub initOptions {
    my $exclude = shift || '';
    my $flags = `rsync_tmbackup --rsync-get-flags`;
    chomp($flags);
+
+   if (! -t STDOUT) {
+       # hide list of changed files
+       $flags =~ s/--itemize-changes//;
+   }
+
    $flags .= " --files-from=$include ";
    if ($exclude ne '') {
        $flags .= " --exclude-from=$exclude ";
