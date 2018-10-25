@@ -33,8 +33,12 @@ else
    subject="Backup $backup [$hostname]:"
 fi
 
+notify_from=$(/sbin/e-smith/config getprop root SenderAddress)
+if [ -z $notify_from ]; then
+    notify_from=$(/sbin/e-smith/db $db getprop $backup NotifyFrom)
+fi
+
 notify_to=$(/sbin/e-smith/db $db getprop $backup NotifyTo)
-notify_from=$(/sbin/e-smith/db $db getprop $backup NotifyFrom)
 notify=$(/sbin/e-smith/db $db getprop $backup Notify)
 sender=${notify_from:-root}
 recipient=${notify_to:-root@localhost}

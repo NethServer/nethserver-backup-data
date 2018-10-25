@@ -33,7 +33,6 @@ Properties:
 * ``NFSHost`` : host name of the NFS server
 * ``NFShare`` : contains the NFS share name
 * ``Notify``: if set to ``always``, always send a notification with backup status; if set to ``error``, send a notication only on error; if set to ``never``, never send a notification
-* ``NotifyFrom``: set a different sender then ``root@localhost``
 * ``NotifyTo``: send the notification to given mail address, default is ``root@localhost``
 * ``WebDAVUrl`` : contains the WebDAV URL address
 * ``WebDAVLogin`` : login user for the WebDAV server
@@ -147,7 +146,7 @@ Adding a backup
 
    ::
 
-     db backups set t1 restic VFSType sftp SftpHost 192.168.1.123 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 status enabled BackupTime 3:00 CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost
+     db backups set t1 restic VFSType sftp SftpHost 192.168.1.123 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 status enabled BackupTime 3:00 CleanupOlderThan 30D Notify error NotifyTo root@localhost
 
 2. Enable the configuration:
 
@@ -353,7 +352,7 @@ Properties:
 
 Example: ::
 
-  db backups set t1 restic status enabled BackupTime '15 7 * * *' CleanupOlderThan 30D Notify error NotifyFrom '' NotifyTo root@localhost Prune 1 \
+  db backups set t1 restic status enabled BackupTime '15 7 * * *' CleanupOlderThan 30D Notify error NotifyTo root@localhost Prune 1 \
   VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 
   echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
 
@@ -373,7 +372,7 @@ Properties
 
 Example: ::
 
-  db backupst set t1 restic VFSType s3 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled Prune always\
+  db backupst set t1 restic VFSType s3 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled Prune always\
   S3AccessKey XXXXXXXXXXXXXXXXXXXX S3Bucket restic-demo S3Host s3.amazonaws.com S3SecretKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx status enabled
   signal-event nethserver-backup-data-save t1
 
@@ -394,7 +393,7 @@ Properties:
 
 Example: ::
   
-  db backupst set t1 restic VFSType b2 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  db backupst set t1 restic VFSType b2 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled \
   B2AccountId B2AccountId xxxxxxxxxxxx B2AccountKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 2Bucket restic-demo 
   signal-event nethserver-backup-data-save t1
 
@@ -416,7 +415,7 @@ Properties:
 
 Example: ::
 
-  db backupst set t1 restic VFSType rest BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyFrom '' NotifyTo root@localhost status enabled \
+  db backupst set t1 restic VFSType rest BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled \
   RestDirectory t1 RestHost 192.168.1.2 RestPassword mypass RestPort 8000 RestProtocol http RestUser myuser
   signal-event nethserver-backup-data-save t1
 
@@ -427,7 +426,6 @@ Database example: ::
     BackupTime=1 7 * * *
     CleanupOlderThan=never
     Notify=error
-    NotifyFrom=
     NotifyTo=root@localhost
     SMBHost=192.168.1.234
     SMBLogin=test
@@ -441,7 +439,6 @@ Database example: ::
     NFSHost=192.168.1.234
     NFSShare=/test
     Notify=error
-    NotifyFrom=
     NotifyTo=root@localhost
     VFSType=nfs
     status=enabled
@@ -508,7 +505,7 @@ Properties:
 
 Example: ::
 
-  db backups set t1 rsync status enabled BackupTime '15 7 * * *' Notify error NotifyFrom '' NotifyTo root@localhost \
+  db backups set t1 rsync status enabled BackupTime '15 7 * * *' Notify error NotifyTo root@localhost \
   VFSType sftp SftpHost 192.168.1.2 SftpUser root SftpPort 22 SftpDirectory /mnt/t1 
   echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
 
@@ -520,7 +517,6 @@ Database example: ::
  t2=rsync
     BackupTime=1 7 * * *
     Notify=error
-    NotifyFrom=
     NotifyTo=root@localhost
     SMBHost=192.168.1.234
     SMBLogin=test
@@ -533,7 +529,6 @@ Database example: ::
     NFSHost=192.168.1.234
     NFSShare=/test
     Notify=error
-    NotifyFrom=
     NotifyTo=root@localhost
     VFSType=nfs
     status=enabled
