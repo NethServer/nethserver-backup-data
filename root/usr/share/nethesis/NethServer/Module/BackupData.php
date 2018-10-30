@@ -162,6 +162,8 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $view['CleanupOlderThanDatasource'] = array_map(function($fmt) use ($view) {
             return array($fmt, $view->translate($fmt . '_label'));
         }, $this->cleanuptypes);
+
+        $view['SenderAddress'] = $this->getPlatform()->getDatabase('configuration')->getProp('root','SenderAddress');
     }
 
     public function validate(\Nethgui\Controller\ValidationReportInterface $report)
@@ -215,6 +217,17 @@ class BackupData extends \Nethgui\Controller\AbstractController
         return true;
     }
 
+
+    public function readNotifyFrom()
+    {
+        $sender = $this->getPlatform()->getDatabase('configuration')->getProp('root','SenderAddress');
+        if ($sender) {
+            return $sender;
+        } else {
+            return $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','NotifyFrom');
+        }
+
+    }
 
     public function readNotifyToType()
     {

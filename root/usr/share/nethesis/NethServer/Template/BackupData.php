@@ -73,7 +73,7 @@ $notification = $view->panel()
         ->insert($view->textInput('notifyToCustom',  $view::LABEL_NONE))
         )
     )
-    ->insert($view->textInput('notifyFrom', 'root'))
+    ->insert($view->textInput('notifyFrom', $view['SenderAddress'] ? ($view::STATE_READONLY | $view::STATE_DISABLED) : 0))
 ;
 
 
