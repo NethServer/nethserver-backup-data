@@ -48,6 +48,9 @@ if ($name eq 'backup-data') {
 my $mntdir = "/mnt/backup-$name";
 my $backupwk = $db->get($name) || die("No '$name' db entry found\n");
 
+my $status = $backupwk->prop('status') || 'disabled';
+exit 0 if ($status eq 'disabled');
+
 my $smbhost = $backupwk->prop('SMBHost');
 my $smbshare = $backupwk->prop('SMBShare');
 my $login = $backupwk->prop('SMBLogin');

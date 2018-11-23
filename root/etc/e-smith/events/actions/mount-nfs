@@ -48,6 +48,9 @@ if ($name eq 'backup-data') {
 my $mntdir = "/mnt/backup-$name";
 my $backupwk = $db->get($name) || die("No '$name' db entry found\n");
 
+my $status = $backupwk->prop('status') || 'disabled';
+exit 0 if ($status eq 'disabled');
+
 my $nfshost = $backupwk->prop('NFSHost');
 my $nfsshare = $backupwk->prop('NFSShare');
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';

@@ -44,6 +44,9 @@ my $db = esmith::ConfigDB->open_ro();
 my $mntdir = "/mnt/backup-$name";
 my $backupwk = $db->get($name) || die("No '$name' db entry found\n");
 
+my $status = $backupwk->prop('status') || 'disabled';
+exit 0 if ($status eq 'disabled');
+
 my $webdavurl = $backupwk->prop('WebDAVUrl');
 my $login = $backupwk->prop('WebDAVLogin');
 my $password = $backupwk->prop('WebDAVPassword');
