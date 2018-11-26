@@ -38,9 +38,12 @@ my $backupwk = $confdb->get('backup-data') or die "No backup-data db entry found
 my $nfshost = $backupwk->prop('NFSHost');
 my $nfsshare = $backupwk->prop('NFSShare');
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
+my $status = $backupwk->prop('status') || 'disabled';
 our $mntdir = $backupwk->prop('Mount') || '/mnt/backup';
 my $err = 0;
 my $mntdone = 0;
+
+exit 0 if ($status eq 'disabled');
 
 exit 0 unless ($VFSType eq 'nfs');
 
