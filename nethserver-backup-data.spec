@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.4.2
+Version: 1.4.3
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -54,6 +54,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Tue Nov 27 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.3-1
+- Pre-backup-data fails with disabled backup - Bug NethServer/dev#5655
+
 * Mon Nov 05 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.2-1
 - Email notification API - NethServer/dev#5614
 - rsync: output file list only if invoked from tty
