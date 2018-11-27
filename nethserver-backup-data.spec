@@ -1,6 +1,6 @@
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.1.9
+Version: 1.1.10
 Release: 1%{?dist}
 License: GPL
 Group: System
@@ -38,6 +38,9 @@ rm -f %{name}-%{version}-%{release}-filelist
 
 
 %changelog
+* Tue Nov 27 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.10-1
+- Pre-backup-data fails with disabled backup - Bug #3451 [NethServer 6],  NethServer/dev#5655
+
 * Tue Jan 03 2017 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.1.9-1
 - Backup-data not run after system crash - Bug NethServer/dev#5179
 
