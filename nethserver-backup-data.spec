@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.4.3
+Version: 1.4.4
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -54,6 +54,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Thu Dec 20 2018 Stephane de Labrusse <stephdl@de-labrusse.fr> - 1.4.4-1
+- Backup: sender address not saved - Bug NethServer/dev#5677
+
 * Tue Nov 27 2018 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.3-1
 - Pre-backup-data fails with disabled backup - Bug NethServer/dev#5655
 
