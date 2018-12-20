@@ -226,7 +226,14 @@ class BackupData extends \Nethgui\Controller\AbstractController
         } else {
             return $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','NotifyFrom');
         }
+    }
 
+    public function writeNotifyFrom($v)
+    {
+        $sender = $this->getPlatform()->getDatabase('configuration')->getProp('root','SenderAddress');
+        if (!$sender) {
+            return array($v);
+        }
     }
 
     public function readNotifyToType()
