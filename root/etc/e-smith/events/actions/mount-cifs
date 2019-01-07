@@ -79,9 +79,14 @@ if (!$b->is_mounted("\/$smbhost(.*)\/$smbshare") && !$b->is_mounted($mntdir)) {
 
     # mount the backup dir
     $err = qx(/bin/mount -t cifs "//$smbhost/$smbshare" $mntdir -o credentials=$tmp,nounix 2>&1);
-    if ($err) {
-        $err =~s/\n/ /g;
-        ldie("Error while mounting $smbhost:$smbshare : " . $err); 
+    if ($? > 0) {
+        # HACK: try to mount using old CIFS version
+        $err = qx(/bin/mount -t cifs "//$smbhost/$smbshare" $mntdir -o credentials=$tmp,nounix,vers=1.0 2>&1);
+    } else {
+        if ($err) {
+            $err =~s/\n/ /g;
+            ldie("Error while mounting $smbhost:$smbshare : " . $err);
+        }
     }
 }
 
