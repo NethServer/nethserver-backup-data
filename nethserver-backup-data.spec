@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.4.4
+Version: 1.4.5
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -54,6 +54,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Tue Jan 08 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.5-1
+- CIFS Backup fails after upgrade to 7.6 - NethServer/dev#5687
+
 * Thu Dec 20 2018 Stephane de Labrusse <stephdl@de-labrusse.fr> - 1.4.4-1
 - Backup: sender address not saved - Bug NethServer/dev#5677
 
