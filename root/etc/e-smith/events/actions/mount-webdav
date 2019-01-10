@@ -38,9 +38,14 @@ sub ldie;
 my $event = shift || die("No event given");
 my $name = shift || 'backup-data';
 
-exit 0 if ($name ne 'backup-data');
+my $db;
 
-my $db = esmith::ConfigDB->open_ro();
+if ($name eq 'backup-data') {
+    $db = esmith::ConfigDB->open_ro();
+} else {
+    $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+}
+
 my $mntdir = "/mnt/backup-$name";
 my $backupwk = $db->get($name) || die("No '$name' db entry found\n");
 
