@@ -154,6 +154,7 @@ if ($ret != 0) {
 }
 
 if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+    $backup->disk_usage($name);
     system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
