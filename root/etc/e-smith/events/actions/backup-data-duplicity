@@ -29,29 +29,17 @@ use NethServer::BackupData;
 use constant CMD => '/usr/bin/duplicity';
 use constant DEBUG => 0;
 
-my $name = $ARGV[0] || '';
+my $name = $ARGV[0] || die("No name given");
 
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
-my $backupwk;
-my $cacheDir;
-my $dst;
-my $mntdir;
-if ($name eq '') {
-   $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
-   $cacheDir = "/var/lib/nethserver/backup/duplicity/";
-   $mntdir = '/mnt/backup-backup-data';
-   $dst = " file://$mntdir/$systemname ";
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backupwk = $db->get($name) || die("No backup '$name' found");
-   $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
-   $mntdir = "/mnt/backup-$name";
-   $dst = " file://$mntdir/$systemname ";
-}
-
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backupwk = $db->get($name) || die("No backup '$name' found");
+my $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
+my $mntdir = "/mnt/backup-$name";
+my $dst = " file://$mntdir/$systemname ";
 
 my $tm = localtime(time);
 my $dow = $tm->wday;
@@ -84,13 +72,13 @@ if ($type eq 'full') {
 my @include_data_files;
 my @exclude_data_files;
 
-if ( $name ne '' && -f "/etc/backup-data/$name.include" ) {
+if ( -f "/etc/backup-data/$name.include" ) {
     @include_data_files = $backup->load_file_list("/etc/backup-data/$name.include");
 } else {
     @include_data_files = $backup->includes($backup->get_config_dir());
 }
 
-if ( $name ne '' && -f "/etc/backup-data/$name.exclude" ) {
+if ( -f "/etc/backup-data/$name.exclude" ) {
     @exclude_data_files = $backup->load_file_list("/etc/backup-data/$name.exclude");
 } else {
     @exclude_data_files = $backup->excludes($backup->get_config_dir());
@@ -122,11 +110,9 @@ if ( ! -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
    error("No valid VFSType: $VFSType");
 }
 
-if ($name ne '') {
-   my $ret_mnt = system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
-   if ($ret_mnt > 0) {
-        error("Can't mount $mntdir");
-   }
+my $ret_mnt = system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
+if ($ret_mnt > 0) {
+    error("Can't mount $mntdir");
 }
 mkdir "$mntdir/$systemname";
 
@@ -153,7 +139,7 @@ if ($ret != 0) {
    error("Duplicity backup failed");
 }
 
-if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
     $backup->disk_usage($name);
     system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }

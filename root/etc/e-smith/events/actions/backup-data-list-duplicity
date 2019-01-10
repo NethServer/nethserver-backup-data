@@ -38,24 +38,15 @@ my %options=();
 getopts("hfb:", \%options);
 my $help = $options{h};
 my $formatted = $options{f} || '';
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
-my $path;
-my $archive;
-my $backup;
 my $confdb = esmith::ConfigDB->open || die("Could not open config db\n");
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
-if ($name eq '') {
-   $backup = $confdb->get('backup-data');
-   $path = "file:///mnt/backup-backup-data/$systemname";
-   $archive = "/var/lib/nethserver/backup/duplicity/";
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backup = $db->get($name) || die("No backup '$name' found");
-   $path = "file:///mnt/backup-$name/$systemname"; 
-   $archive = "/var/lib/nethserver/backup/duplicity/$name/";
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backup = $db->get($name) || die("No backup '$name' found");
+my $path = "file:///mnt/backup-$name/$systemname"; 
+my $archive = "/var/lib/nethserver/backup/duplicity/$name/";
 
 if ($formatted) {
     my $tmp = File::Temp->new( UNLINK => 1);

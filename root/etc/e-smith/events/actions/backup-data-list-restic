@@ -38,19 +38,13 @@ my %options=();
 getopts("hfb:", \%options);
 my $help = $options{h};
 my $formatted = $options{f} || '';
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
-my $backup;
 my $confdb = esmith::ConfigDB->open || die("Could not open config db\n");
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
-if ($name eq '') {
-   $backup = $confdb->get('backup-data');
-   $name = 'backup-data';
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backup = $db->get($name) || die("No backup '$name' found");
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backup = $db->get($name) || die("No backup '$name' found");
 my $opts = NethServer::Restic::initOptions($name);
 
 my $repo = NethServer::Restic::prepareRepository($systemname, $backup);
