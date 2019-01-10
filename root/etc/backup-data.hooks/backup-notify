@@ -25,21 +25,15 @@ exit_code=$3
 
 hostname=$(hostname -f)
 
-if [ "$backup" == "backup-data" ]; then
-   db="configuration"
-   subject="Backup report [$hostname]:"
-else
-   db="backups"
-   subject="Backup $backup [$hostname]:"
-fi
+subject="Backup $backup [$hostname]:"
 
 notify_from=$(/sbin/e-smith/config getprop root SenderAddress)
 if [ -z $notify_from ]; then
-    notify_from=$(/sbin/e-smith/db $db getprop $backup NotifyFrom)
+    notify_from=$(/sbin/e-smith/db backups getprop $backup NotifyFrom)
 fi
 
-notify_to=$(/sbin/e-smith/db $db getprop $backup NotifyTo)
-notify=$(/sbin/e-smith/db $db getprop $backup Notify)
+notify_to=$(/sbin/e-smith/db backups getprop $backup NotifyTo)
+notify=$(/sbin/e-smith/db backups getprop $backup Notify)
 sender=${notify_from:-root}
 recipient=${notify_to:-root@localhost}
 output=$(cat $log)
