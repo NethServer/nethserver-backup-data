@@ -1,0 +1,37 @@
+{
+    #
+    # Delete backup-data - NethServer/dev#5691
+    #
+    my $old = $DB->get('backup-data') || return '';
+    my $bdb = esmith::ConfigDB->open('backups') || die("Can't open backups db");
+
+    # read props in hash which will be reused later
+    my %props = $old->props;
+
+    # preserve the following props only under original key
+    delete($props{'IncludeLogs'}); # preserve under original key
+    delete($props{'type'});
+
+    foreach (keys %props) {
+         # load from original key, then delete prop
+         my $val = $DB->get_prop_and_delete('backup-data', $_);
+
+         # use Program as record type
+         if ($_ eq 'Program') {
+             $props{'type'} = $val;
+             delete($props{'Program'});
+         }
+
+         # Convert to crontab format
+         if ($_ eq 'BackupTime') {
+             my @tmp = split(/:/,$val);
+             # cast to int to remove eventual leading 0
+             $props{'BackupTime'} = int($tmp[1])." ".$tmp[0]." * * *";
+         }
+    }
+
+    # move all remaining props to new record
+    $bdb->new_record('backup-data', \%props); 
+    '';
+}
+
