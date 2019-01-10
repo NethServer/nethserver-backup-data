@@ -60,41 +60,41 @@ class BackupData extends \Nethgui\Controller\AbstractController
              $this->createValidator(\Nethgui\System\PlatformInterface::EMPTYSTRING),
              $this->createValidator(Validate::EMAIL)
         );
-        $this->declareParameter('status', Validate::SERVICESTATUS, array('configuration', 'backup-data', 'status'));
-        $this->declareParameter('BackupTime', $this->createValidator()->regexp('/^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])$/'), array('configuration', 'backup-data', 'BackupTime'));
-        $this->declareParameter('Type', $this->createValidator()->memberOf(array('full','incremental')), array('configuration', 'backup-data', 'Type'));
-        $this->declareParameter('FullDay', $this->createValidator()->integer()->greatThan(-1)->lessThan(7), array('configuration', 'backup-data', 'FullDay'));
+        $this->declareParameter('status', Validate::SERVICESTATUS, array('backups', 'backup-data', 'status'));
+        $this->declareParameter('BackupTime', $this->createValidator()->regexp('/^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])$/'), array('backups', 'backup-data', 'BackupTime'));
+        $this->declareParameter('Type', $this->createValidator()->memberOf(array('full','incremental')), array('backups', 'backup-data', 'Type'));
+        $this->declareParameter('FullDay', $this->createValidator()->integer()->greatThan(-1)->lessThan(7), array('backups', 'backup-data', 'FullDay'));
 
         $this->declareParameter('notifyToType', $this->createValidator()->memberOf(array('admin','custom')), array());
         $this->declareParameter('notifyToCustom', Validate::EMAIL, array());
-        $this->declareParameter('notifyTo', FALSE, array('configuration', 'backup-data', 'NotifyTo')); # not accessibile from UI, position is IMPORTANT
-        $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('configuration', 'backup-data', 'Notify'));
-        $this->declareParameter('notifyFrom', $fromValidator, array('configuration', 'backup-data', 'NotifyFrom'));
+        $this->declareParameter('notifyTo', FALSE, array('backups', 'backup-data', 'NotifyTo')); # not accessibile from UI, position is IMPORTANT
+        $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('backups', 'backup-data', 'Notify'));
+        $this->declareParameter('notifyFrom', $fromValidator, array('backups', 'backup-data', 'NotifyFrom'));
 
-        $this->declareParameter('VFSType', $this->createValidator()->memberOf($this->vfstypes), array('configuration', 'backup-data', 'VFSType'));
+        $this->declareParameter('VFSType', $this->createValidator()->memberOf($this->vfstypes), array('backups', 'backup-data', 'VFSType'));
         
-        $this->declareParameter('SMBShare', Validate::NOTEMPTY, array('configuration', 'backup-data', 'SMBShare'));
-        $this->declareParameter('SMBHost', Validate::HOSTADDRESS, array('configuration', 'backup-data', 'SMBHost'));
-        $this->declareParameter('SMBLogin', Validate::ANYTHING, array('configuration', 'backup-data', 'SMBLogin'));
-        $this->declareParameter('SMBPassword', Validate::ANYTHING, array('configuration', 'backup-data', 'SMBPassword'));
+        $this->declareParameter('SMBShare', Validate::NOTEMPTY, array('backups', 'backup-data', 'SMBShare'));
+        $this->declareParameter('SMBHost', Validate::HOSTADDRESS, array('backups', 'backup-data', 'SMBHost'));
+        $this->declareParameter('SMBLogin', Validate::ANYTHING, array('backups', 'backup-data', 'SMBLogin'));
+        $this->declareParameter('SMBPassword', Validate::ANYTHING, array('backups', 'backup-data', 'SMBPassword'));
 
-        $this->declareParameter('NFSShare', Validate::NOTEMPTY, array('configuration', 'backup-data', 'NFSShare'));
-        $this->declareParameter('NFSHost', Validate::HOSTADDRESS, array('configuration', 'backup-data', 'NFSHost'));
+        $this->declareParameter('NFSShare', Validate::NOTEMPTY, array('backups', 'backup-data', 'NFSShare'));
+        $this->declareParameter('NFSHost', Validate::HOSTADDRESS, array('backups', 'backup-data', 'NFSHost'));
         
-        $this->declareParameter('USBLabel', Validate::NOTEMPTY, array('configuration', 'backup-data', 'USBLabel'));
+        $this->declareParameter('USBLabel', Validate::NOTEMPTY, array('backups', 'backup-data', 'USBLabel'));
 
-        $this->declareParameter('WebDAVUrl', Validate::NOTEMPTY, array('configuration', 'backup-data', 'WebDAVUrl'));
-        $this->declareParameter('WebDAVLogin', Validate::ANYTHING, array('configuration', 'backup-data', 'WebDAVLogin'));
-        $this->declareParameter('WebDAVPassword', Validate::ANYTHING, array('configuration', 'backup-data', 'WebDAVPassword'));
+        $this->declareParameter('WebDAVUrl', Validate::NOTEMPTY, array('backups', 'backup-data', 'WebDAVUrl'));
+        $this->declareParameter('WebDAVLogin', Validate::ANYTHING, array('backups', 'backup-data', 'WebDAVLogin'));
+        $this->declareParameter('WebDAVPassword', Validate::ANYTHING, array('backups', 'backup-data', 'WebDAVPassword'));
 
-        $this->declareParameter('CleanupOlderThan', $this->createValidator()->memberOf($this->cleanuptypes), array('configuration', 'backup-data', 'CleanupOlderThan'));
+        $this->declareParameter('CleanupOlderThan', $this->createValidator()->memberOf($this->cleanuptypes), array('backups', 'backup-data', 'CleanupOlderThan'));
         $this->declareParameter('IncludeLogs', Validate::SERVICESTATUS, array('configuration', 'backup-data', 'IncludeLogs'));
 
     }
 
     protected function onParametersSaved($changes)
     {
-        $this->getPlatform()->signalEvent('nethserver-backup-data-save@post-process');
+        $this->getPlatform()->signalEvent('nethserver-backup-data-save');
     }
 
     private function getModel($item) {
@@ -224,7 +224,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
         if ($sender) {
             return $sender;
         } else {
-            return $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','NotifyFrom');
+            return $this->getPlatform()->getDatabase('backups')->getProp('backup-data','NotifyFrom');
         }
     }
 
@@ -238,7 +238,7 @@ class BackupData extends \Nethgui\Controller\AbstractController
 
     public function readNotifyToType()
     {
-        $current = $this->getPlatform()->getDatabase('configuration')->getProp('backup-data','NotifyTo');
+        $current = $this->getPlatform()->getDatabase('backups')->getProp('backup-data','NotifyTo');
         if($current == "root@localhost") {
             return "admin";
         } else {
@@ -256,4 +256,15 @@ class BackupData extends \Nethgui\Controller\AbstractController
         }
     }
 
+    public function readBackupTime()
+    {
+        $tmp = explode(" ", $this->getPlatform()->getDatabase('backups')->getProp('backup-data','BackupTime'));
+        return sprintf('%d:%02d', $tmp[1], $tmp[0]);
+    }
+
+    public function writeBackupTime($value)
+    {
+        $tmp = explode(":",$value);
+        return array(sprintf("%d %d * * *", $tmp[1], $tmp[0]));
+    }
 }
