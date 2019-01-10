@@ -39,7 +39,7 @@ sub print_help
 my %options=();
 getopts("hb:", \%options);
 my $help = $options{h};
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
 if ($help)
 {
@@ -47,23 +47,15 @@ if ($help)
   exit(0);
 }
 
-my $backup;
-my $program;
 my $status;
 my %du;
 my $timeout = 0;
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
-if ($name eq '') {
-   $backup = $conf->get('backup-data');
-   $program = $backup->prop('Program') || 'duplicity';
-   out("Backup: backup-data");
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backup = $db->get($name) || die("No backup '$name' found");
-   $program = $backup->prop('type') || 'duplicity';
-   out("Backup: $name");
-}
-my $duLogFile = '/var/lib/nethserver/backup/disk_usage';
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backup = $db->get($name) || die("No backup '$name' found");
+my $program = $backup->prop('type') || 'duplicity';
+out("Backup: $name");
+my $duLogFile = "/var/spool/backup/disk_usage-$name";
 
 $backup = new NethServer::BackupData();
 
@@ -113,18 +105,14 @@ out("Backup ended at %s", strftime('%F %T',localtime));
 my $duration = time - $start;
 out("Time elapsed: %s hours, %s minutes, %s seconds", (floor($duration/(60*60))), ($duration/60)%60, $duration%60);
 
-if ($name eq '') {
-    # disk usage stats
-    if ( open(FILE, "<$duLogFile") ) {
-        %du = %{decode_json(join('', <FILE>))};
-        close(FILE);
-        if ($du{'size'}) { $du{'size'} = format_bytes($du{'size'}*1024); }
-        if ($du{'used'}) { $du{'used'} = format_bytes($du{'used'}*1024); }
-        if ($du{'avail'}) { $du{'avail'} = format_bytes($du{'avail'}*1024); }
-        if ($du{'pcent'}) { $du{'pcent'} .= '%'; }
-    } else {
-        warn("[WARNING] Could not open $duLogFile\n");
-    }
+# disk usage stats
+if ( open(FILE, "<$duLogFile") ) {
+    %du = %{decode_json(join('', <FILE>))};
+    close(FILE);
+    if ($du{'size'}) { $du{'size'} = format_bytes($du{'size'}*1024); }
+    if ($du{'used'}) { $du{'used'} = format_bytes($du{'used'}*1024); }
+    if ($du{'avail'}) { $du{'avail'} = format_bytes($du{'avail'}*1024); }
+    if ($du{'pcent'}) { $du{'pcent'} .= '%'; }
     out("\nDisk Usage:\n%10s %10s %10s %8s", 'Size', 'Used', 'Available', 'Use%');
     out("%10s %10s %10s %8s", $du{'size'}||'-', $du{'used'}||'-', $du{'avail'}||'-', $du{'pcent'}||'-');
 }

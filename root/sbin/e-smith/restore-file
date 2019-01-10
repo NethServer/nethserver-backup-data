@@ -37,7 +37,7 @@ my %options=();
 getopts("ht:b:", \%options);
 my $help = $options{h};
 my $time = $options{t} || '';
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
 if ($help)
 {
@@ -57,17 +57,9 @@ foreach (@ARGV) {
     }
 }
 
-my $confdb = esmith::ConfigDB->open;
-my $backupwk;
-my $program;
-if ($name eq '') {
-   $backupwk = $confdb->get('backup-data');
-   $program = $backupwk->prop('Program') || 'duplicity';
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backupwk = $db->get($name) || die("No backup '$name' found");
-   $program = $backupwk->prop('type');
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backupwk = $db->get($name) || die("No backup '$name' found");
+my $program = $backupwk->prop('type');
 
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 
@@ -81,10 +73,10 @@ if ($time) {
     push(@args, "-t");
     push(@args, $time);
 }
-if ($name) {
-    push(@args, "-b");
-    push(@args, $name);
-}
+
+push(@args, "-b");
+push(@args, $name);
+
 push(@args,  $dst_path);
 foreach (@files) {
     push(@args, $_);
