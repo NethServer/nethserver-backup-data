@@ -3,9 +3,6 @@
 #
 
 {
-    $OUT .= "[/mnt/backup-backup-data]\n";
-    $OUT .= "ask_auth\t0\n";
-
     use esmith::ConfigDB;
     my $db = esmith::ConfigDB->open_ro('backups') || return '';
     foreach ($db->get_all()) {
@@ -16,4 +13,3 @@
         }
     }
 }
-
