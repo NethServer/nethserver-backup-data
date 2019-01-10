@@ -73,13 +73,14 @@ sub disk_usage
     if ($self->is_mounted($mntdir)) {
         # get disk usage stats
         if ( @du{qw(source size used avail pcent target)} = split(" ", `/bin/df -P "$mntdir" 2>/dev/null | grep "$mntdir"`) ) {
-             delete @du{'source', 'target'};
-            $du{'pcent'} = sprintf "%.2f", $du{'used'}/$du{'size'}*100;
-            $du{'pcent'} += 0;
+            delete @du{'source', 'target'};
 
-            if ( $du{'used'} lt 0 || $du{'avail'} lt 0 ) {
+            if ( $du{'size'} eq 0 || $du{'used'} lt 0 || $du{'avail'} lt 0 ) {
                 # Unable to determine backup storage capacity
                 @du{'size', 'used', 'avail', 'pcent'} = undef;
+            } else {
+                $du{'pcent'} = sprintf "%.2f", $du{'used'}/$du{'size'}*100;
+                $du{'pcent'} += 0;
             }
 
             # output disk usage to file
