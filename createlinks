@@ -50,13 +50,6 @@ event_actions($event,
 
 
 #--------------------------------------------------
-# actions for nethserver-backup-data-uninstall event
-#--------------------------------------------------
-
-$event = "nethserver-backup-data-uninstall";
-unlink("/etc/cron.d/backup-data");
-
-#--------------------------------------------------
 # actions for post-backup-data event
 #--------------------------------------------------
 
