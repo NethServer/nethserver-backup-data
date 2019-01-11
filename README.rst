@@ -15,67 +15,26 @@ Available engines:
 
 The ``nethserver-backup-data`` package requires ``nethserver-backup-config``.
 
-Single backup
+Configuration
 =============
 
+Backups can be scheduled in different hours to multiple storage backends.
+
+Global properties
+-----------------
+
+This configuration is applied to all backups.
 It uses the key ``backup-data`` inside ``configuration`` database.
 
 Properties:
 
-* ``status`` : enable or disable the automatic backup, can be ``enabled`` or ``disabled``. Default is ``enabled``. Regardless of this property, the backup is always executed if started manually
-* ``BackupTime``: time of the scheduled backup. Must be in the form ``hh:mm``. Default is ``1:00``
-* ``VFSType`` : set the backup medium, can be ``usb``, ``cifs``, ``nfs`` or ``webdav``.
-* ``SMBShare``: contains the Samba share name
-* ``SMBHost`` : host name of the SMB server
-* ``SMBLogin`` : login user for the SMB server
-* ``SMBPassword`` : password for the SMB server
-* ``USBLabel`` : contains the filesystem label 
-* ``NFSHost`` : host name of the NFS server
-* ``NFShare`` : contains the NFS share name
-* ``Notify``: if set to ``always``, always send a notification with backup status; if set to ``error``, send a notication only on error; if set to ``never``, never send a notification
-* ``NotifyTo``: send the notification to given mail address, default is ``root@localhost``
-* ``WebDAVUrl`` : contains the WebDAV URL address
-* ``WebDAVLogin`` : login user for the WebDAV server
-* ``WebDAVPassword`` : password for the WebDAV server
-* ``Program`` : program used to perfrom the backup. Backup and restore processes will look for an action called respectively  ``backup-data-<Program>`` and ``restore-data-<Program>``. Default is: duplicity
-* ``Type`` : can be ``full`` or ``incremental``. If ``full``, a full backup will be executed every time. If ``incremental``, a full backup will be executed once a week at ``FullDay``, all other backups will be incremental
-* ``FullDay`` : number of day of the week when a full backup will be executed. Can be a number from 0 (Sunday) to 6 (Saturday). Defaults is ``0``.
-* ``Mount`` : directory where the share (or usb drive) will be mounted. Defaults is ``/mnt/backup``
-* ``VolSize`` : size of chunks in MB, if supported by ``Program``. Default is 250
-* ``CleanupOlderThan`` : time to retain backups, accept duplicity syntax (eg. 7D, 1M). Default is: never (keep all backups)
 * ``IncludeLogs``: if enabled, add ``/var/log`` directory to backup, can be ``enabled`` or ``disabled``. Default is ``disabled``.
 
-Supported VFSType:
 
-* ``cifs`` : save the backup on a remote SMB server. Authentication is mandatory.
-* ``nfs`` : save the backup on a remote NFS server. No authentication supported.
-* ``usb`` : save the backup on a USB device. The device must have a writable filesystem with a custom label. 
-  When the backup is started, the system will search for an USB device with the filesystem label saved in ``USBLabel``.
-* ``webdav`` : save the backup on a webDAV server. When using a secure connection make sure the target webDAV server has a valid SSL certificate, otherwise the system will fail mounting the filesystem.
+Local properties
+----------------
 
-Change single backup engine
----------------------------
-
-As default, duplicity is used for the single backup.
-If you whish to change the engine to ``restic`` or ``rsync``, change the ``Program`` peroperty accordingly.
-
-Example for restic: ::
-
-  config setprop backup-data Program restic
-
-Multiple backups
-================
-
-Multiple backups can be scheduled in different hours to multiple storage backends.
-Some features are still not implemented for multiple backupss:
-
-* configuration backup can't be directly extracted from data backup
-* WebDAV storage backend
-* disk usage report
-* push configuration backup to backup directory
-* Web UI for data restore
-
-
+This configuration is applied only to the selected backups.
 Every backup record is saved inside the ``backups`` database. Each record can have 3 different types:
 
 * ``duplicity``
@@ -84,30 +43,53 @@ Every backup record is saved inside the ``backups`` database. Each record can ha
 
 The key of the record is referred as the backup ``name``.
 
-Some properties are common to both backends and have the same behavior described under "Single backup" section, the only exception is ``BackupTime``:
 
-* ``status``
+Common properties:
+
+* ``status`` : enable or disable the automatic backup, can be ``enabled`` or ``disabled``. Default is ``enabled``. Regardless of this property, the backup is always executed if started manually
 * ``BackupTime``: time of the scheduled backup. Must be in the cron-style syntax: Es. ``15 7 * * *``. Runs on 7:15.
-* ``SMBShare``
-* ``SMBHost``
-* ``SMBLogin`` 
-* ``SMBPassword``
-* ``USBLabel``
-* ``NFSHost``
-* ``NFShare``
-* ``CleanupOlderThan``
-* ``VFSType``: each backend can implement its own list of supported storage backends
+* ``VFSType`` : set the backup medium, can be ``usb``, ``cifs``, ``nfs`` or ``webdav``.
+* ``SMBShare``: contains the Samba share name
+* ``SMBHost`` : host name of the SMB server
+* ``SMBLogin`` : login user for the SMB server
+* ``SMBPassword`` : password for the SMB server
+* ``USBLabel`` : contains the filesystem label 
+* ``NFSHost`` : host name of the NFS server
+* ``NFShare`` : contains the NFS share name
+* ``Notify``: if set to ``always``, always send a notification with backup status; if set to ``error``, send a notification only on error; if set to ``never``, never send a notification
+* ``NotifyTo``: send the notification to given mail address, default is ``root@localhost``
+* ``WebDAVUrl`` : contains the WebDAV URL address
+* ``WebDAVLogin`` : login user for the WebDAV server
+* ``WebDAVPassword`` : password for the WebDAV server
+* ``CleanupOlderThan`` : time to retain backups, accept duplicity syntax (eg. 7D, 1M). Default is: never (keep all backups)
 
-Each record should contains only the properties relative to the storage backend selected with ``VFSType``.
+Supported VFSType:
+
+* ``cifs`` : save the backup on a remote SMB server. Authentication is mandatory.
+* ``nfs`` : save the backup on a remote NFS server. No authentication supported.
+* ``usb`` : save the backup on a USB device. The device must have a writable filesystem with a custom label. 
+  When the backup is started, the system will search for an USB device with the filesystem label saved in ``USBLabel``.
+* ``webdav`` : save the backup on a WebDAV server. When using a secure connection make sure the target WebDAV server has a valid SSL certificate, otherwise the system will fail mounting the filesystem.
+
+
+Backward compatibility
+======================
+
+To retain the backward compatibility with the old "single backup" feature, a backup named ``backup-data`` has the following special features:
+
+- can have a ``NotifyFrom`` prop to specify the sender address of notification mail
+- the backup can be modified from the old Server Manger and the status is reported inside the dashboard
+- can be selectively restored using nethserver-restore-data package
 
 Backup
 ======
 
-The main command is ``/sbin/e-smith/backup-data`` which starts the backup process. The backup is composed of three parts:
+The main command is ``/sbin/e-smith/backup-data -b <name>`` which starts the backup process. The backup is composed of three parts:
 
-* *pre-backup-data* event: prepare the system and mount the destination share
-* */etc/e-smith/events/actions/backup-data-<program>* action: execute the backup. This actions must implement full/incremental logic. The backup is directly saved on the mounted share (or usb device).
-* *post-backup-data*: umount share and cleanup. Actions in this event can also implement retention policies (currently not implemented).
+* *pre-backup-data* event: prepare the system (eg. dump of mysql tables)
+* */etc/e-smith/events/actions/backup-data-<program>* action: execute the backup
+  This actions must implement full/incremental logic and should also take care to mount and umount the destination
+* *post-backup-data*: cleanup. Actions in this event can also implement retention policies
 
 
 Logs and wrapper
@@ -128,19 +110,14 @@ Each script is invoked with the following parameters:
 - backup exit code
 
 
-Single backup
--------------
+Default hooks
+~~~~~~~~~~~~~
 
-To start the backup, execute: ::
-
-  backup-data
-
-
-Multiple backups
-----------------
+- ``backup-dashboard-status``: save the status of the backup ``/var/spool/backup/status-<backup_name>``
+- ``backup-notify``: send backup notifications mails
 
 Adding a backup
-~~~~~~~~~~~~~~~
+---------------
 
 1. Create a backup record with all required options. Example: create a restic backup named ``t1`` using sFTP backend:
 
@@ -155,13 +132,21 @@ Adding a backup
      echo -e "Nethesis,1234" > /tmp/t1-password; signal-event nethserver-backup-data-save t1  /tmp/t1-password
 
 Start a backup
-~~~~~~~~~~~~~~
+--------------
 
 Start the backup, by passing the name of the backup to ``backup-data`` command. Example:
 
   ::
 
     backup-data -b t1
+
+Disk usage
+==========
+
+Each backup script creates statistics about disk utilization on the backup destination.
+Statistics are available only for: cifs, nfs and usb.
+
+Data are saved inside ``/var/spool/backup/disk_usage-<backup_name>``.
 
 Indexing
 ========
@@ -171,29 +156,30 @@ In the *pre-backup-data* event the disk analyzer (Duc) make an indexing of files
 The name of the actions is ``/etc/e-smith/events/actions/nethserver-restore-data-duc-index`` and it compose the JSON file to create
 the navigable graphic tree.
 
-The indexing feature is limited to single backup.
+The indexing feature is limited to the backup named ``backup-data``.
 
 Customization
 =============
 
-Single backup
--------------
+Global
+------
 
 Add custom include/exclude inside following files:
 
-* /etc/backup-data.d/custom.include
-* /etc/backup-data.d/custom.exclude
+* ``/etc/backup-data.d/custom.include``
+* ``/etc/backup-data.d/custom.exclude``
 
-Multiple backups
-----------------
+This configuration is applied to all backups.
 
-The multiple backups read the same configuration of the single backup.
-List of saved and excluded files can be customized using two special files (where ``name`` is the name of the backup):
+Local
+-----
+
+Each backup can **override** the global list of include/exclude by creating two special files:
 
 - ``/etc/backup-data/<name>.include``
 - ``/etc/backup-data/<name>.exclude``
 
-Both file will override the list on included and excluded files from the single backup.
+Where ``name`` is the name of the backup.
 
 Retention policy
 ================
@@ -207,33 +193,11 @@ Restore
 Restore from command line
 -------------------------
 
-The main command is ``/sbin/e-smith/restore-data`` which starts the restore process:
+The main command is ``/sbin/e-smith/restore-data -b <name>`` which starts the restore process:
 
 * *pre-restore-data* event: used to prepare the system (Eg. mysql stop)
 * *restore-data-<program>* action: search for a backup in the configuration database and restore it
 * *post-restore-data* event: used to inform programs about new available data (eg. mysql restart)
-
-Single backup
-~~~~~~~~~~~~~
-
-To restore all data into the original location, use: ::
-
-  restore-data
-
-To restore a file or directory, use: ::
-
-  restore-file <position> <path>
-
-Example: restore ``/var/lib/nethserver/secrets`` to the orignal position: ::
-
-  restore-file / /var/lib/nethserver/secrets
-
-Example: restore ``/var/lib/nethserver/secrets`` under ``/tmp``: ::
-
-  restore-file /tmp /var/lib/nethserver/secrets
-
-Multiple backups
-~~~~~~~~~~~~~~~~
 
 To restore all data into the original location, use: ::
 
@@ -247,19 +211,17 @@ To restore a file or directory, use: ::
 Restore from graphic interface
 ------------------------------
 
+**NOTE**: this apply only to special backup named ``backup-data``
+
 After the selection of the paths to restore, the main command called is ``/usr/libexec/nethserver/nethserver-restore-data-help`` that
 reads the list of paths to restore and creates a executable command to restore the directories. If the second option of restore was selected (Restored file without overwrite the existing files), after the restore in a temp directory, the script moves the restored directories in the correct paths.
 
 List backup contents
 ====================
 
-The list of file inside the single backup can be obtained using: ::
+The list of file inside each backup can be obtained using: ::
 
-  /sbin/e-smith/backup-data-list
-
-For multiple backups, use the ``-b`` option to pass the backup name: ::
-
- /sbin/e-smith/backup-data-list -b t1
+ /sbin/e-smith/backup-data-list -b <name>
 
 Duplicity
 =========
@@ -274,9 +236,10 @@ Extra options
 
 Properties valid only for duplicity engine, see "Single backup" section for an explanation of each property:
 
-* ``Type``
-* ``FullDay``
-* ``VolSize``
+* ``Type`` : can be ``full`` or ``incremental``. If ``full``, a full backup will be executed every time.
+  If ``incremental``, a full backup will be executed once a week at ``FullDay``, all other backups will be incremental
+* ``FullDay`` : number of day of the week when a full backup will be executed. Can be a number from 0 (Sunday) to 6 (Saturday). Defaults is ``0``.
+* ``VolSize`` : size of chunks in MB, if supported by ``Program``. Default is 250
 
 Storage backends
 ----------------
@@ -286,6 +249,7 @@ Supported ``VFSType`` :
 * ``usb``
 * ``cifs``
 * ``nfs``
+* ``webdav``
 
 Listing backup sets
 -------------------
@@ -305,10 +269,10 @@ Just execute: ::
 Restic
 ======
 
-Implement backup enginge using restic (https://restic.net/), it can be used as duplicity replacement for standard
+Implement backup engine using restic (https://restic.net/), it can be used as duplicity replacement for standard
 backup or as multiple backup.
 
-In restic, cleanup operations are composed by two commands: forget, to remove a snaphost, and prune, to actually remove the data
+In restic, cleanup operations are composed by two commands: forget, to remove a snapshot, and prune, to actually remove the data
 that was referenced by the deleted snapshot.
 The prune operation is quite slow and should be executed at least once a week.
 
@@ -317,7 +281,7 @@ Extra options
 
 * ``Prune``: execute the pruning on the specified time. Valid values are:
 
-  * ``always``: run the prune everytime at the end of backup
+  * ``always``: run the prune every time at the end of backup
   * a number between ``0`` and ``6``: run the prune on the selected week day (0 is Sunday, 1 is Monday)
 
 Storage backends
@@ -328,8 +292,8 @@ Supported ``VFSType`` :
 * ``usb``
 * ``cifs``
 * ``nfs``
-* ``webdav``: only if used as duplicity replacement in the standard backup
-* ``s3``: Amazon S3 (or compatibile server like Minio)
+* ``webdav``
+* ``s3``: Amazon S3 (or compatible server like Minio)
 * ``sftp``: FTP over SSH
 * ``b2``: BackBlaze B2
 * ``rest``: Restic REST server
@@ -341,11 +305,11 @@ sftp
 SFTP
 
 Connection to remote host uses a specific public key. A password is needed only once to copy the public key to the remote host.
-SSH client configuration is addedd to ``/etc/ssh/sshd_config``.
+SSH client configuration is added to ``/etc/ssh/sshd_config``.
 
 Properties:
 
-* ``SftpHost``: SSH hostname or IP address
+* ``SftpHost``: SSH host name or IP address
 * ``SftpUser``: SSH user
 * ``SftpPort``: SSH port
 * ``SftpDirectory``: destination directory, must be writable by SSH user
@@ -361,7 +325,7 @@ The temporary file containing the password will be deleted at the end of ``neths
 s3
 ~~
 
-Amazon S3 (https://aws.amazon.com/s3/) compatibile (like https://www.minio.io/).
+Amazon S3 (https://aws.amazon.com/s3/) compatible (like https://www.minio.io/).
 
 Properties
 
@@ -372,7 +336,7 @@ Properties
 
 Example: ::
 
-  db backupst set t1 restic VFSType s3 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled Prune always\
+  db backups set t1 restic VFSType s3 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled Prune always\
   S3AccessKey XXXXXXXXXXXXXXXXXXXX S3Bucket restic-demo S3Host s3.amazonaws.com S3SecretKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx status enabled
   signal-event nethserver-backup-data-save t1
 
@@ -383,7 +347,7 @@ How to setup Amazon S3 access keys: https://restic.readthedocs.io/en/stable/080_
 b2
 ~~
 
-Backblaze B2 (https://www.backblaze.com/b2/cloud-storage.html)
+BackBlaze B2 (https://www.backblaze.com/b2/cloud-storage.html)
 
 Properties:
 
@@ -393,8 +357,8 @@ Properties:
 
 Example: ::
   
-  db backupst set t1 restic VFSType b2 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled \
-  B2AccountId B2AccountId xxxxxxxxxxxx B2AccountKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 2Bucket restic-demo 
+  db backups set t1 restic VFSType b2 BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled \
+  B2AccountId B2AccountId xxxxxxxxxxxx B2AccountKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx B2Bucket restic-demo 
   signal-event nethserver-backup-data-save t1
 
 
@@ -406,8 +370,8 @@ Restic REST server (https://github.com/restic/rest-server)
 Properties:
 
 * ``RestDirectory``: destination directory
-* ``RestHost``: REST server hostname or IP address
-* ``RestPort``: REST srver port (default for server is 8000)
+* ``RestHost``: REST server host name or IP address
+* ``RestPort``: REST server port (default for server is 8000)
 * ``RestProtocol``: REST protocol, can be ``http`` or ``https``
 * ``RestUser``: user for authentication (optional)
 * ``RestPassword``: password for authentication (optional)
@@ -415,7 +379,7 @@ Properties:
 
 Example: ::
 
-  db backupst set t1 restic VFSType rest BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled \
+  db backups set t1 restic VFSType rest BackupTime '15 7 * * *' CleanupOlderThan never Notify error NotifyTo root@localhost status enabled \
   RestDirectory t1 RestHost 192.168.1.2 RestPassword mypass RestPort 8000 RestProtocol http RestUser myuser
   signal-event nethserver-backup-data-save t1
 
@@ -484,7 +448,7 @@ Supported ``VFSType`` :
 * ``usb``
 * ``cifs``
 * ``nfs``
-* ``webdav``: only if used as duplicity replacement in the standard backup
+* ``webdav``
 * ``sftp``: FTP over SSH
 
 
@@ -494,11 +458,11 @@ sftp
 SFTP
 
 Connection to remote host uses a specific public key. A password is needed only once to copy the public key to the remote host.
-SSH client configuration is addedd to ``/etc/ssh/sshd_config``.
+SSH client configuration is added to ``/etc/ssh/sshd_config``.
 
 Properties:
 
-* ``SftpHost``: SSH hostname or IP address
+* ``SftpHost``: SSH host name or IP address
 * ``SftpUser``: SSH user
 * ``SftpPort``: SSH port
 * ``SftpDirectory``: destination directory, must be writable by SSH user
