@@ -64,10 +64,7 @@ if ( ! -d $mntdir ) {
 }
 
 # mount backup directory if not already mounted
-if (!$b->is_mounted($device) || !$b->is_mounted($mntdir)) {
-    # create mnt directory
-    system("/bin/mkdir -p $mntdir");
-
+if (!$b->is_mounted($device) && !$b->is_mounted($mntdir)) {
     # mount the disk
     $err = qx(/bin/mount $device "$mntdir" 2>&1);
     if ($err) {
