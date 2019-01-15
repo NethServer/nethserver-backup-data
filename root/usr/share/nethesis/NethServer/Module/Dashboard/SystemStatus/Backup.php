@@ -44,12 +44,12 @@ class Backup extends \Nethgui\Controller\AbstractController
             $backup['result'] = "-";
             $backup['end'] = "";
         }
-        $br = $this->getPlatform()->getDatabase('configuration')->getKey('backup-data');
+        $br = $this->getPlatform()->getDatabase('backups')->getKey('backup-data');
         $backup['vfs'] = $br['VFSType'] ? $br['VFSType'] : '-';
         $backup['status'] = $br['status'];
         $backup['time'] = $br['BackupTime'];
 
-        $disk_usage_file = "/var/lib/nethserver/backup/disk_usage";
+        $disk_usage_file = "/var/spool/backup/disk_usage-backup-data";
         if (file_exists($disk_usage_file)) {
             $file = file_get_contents("$disk_usage_file");
             if ($du = json_decode($file, true)) {

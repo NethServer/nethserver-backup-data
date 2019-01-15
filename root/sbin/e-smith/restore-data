@@ -35,7 +35,7 @@ sub print_help
 my %options=();
 getopts("hb:", \%options);
 my $help = $options{h};
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
 if ($help)
 {
@@ -43,21 +43,11 @@ if ($help)
   exit(0);
 }
 
-my $backup;
-my $program;
-my $restore_action;
 my $status;
-my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
-if ($name eq '') {
-   $backup = $conf->get('backup-data');
-   $program = $backup->prop('Program') || 'duplicity';
-   $restore_action = "/etc/e-smith/events/actions/restore-data-$program"; 
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backup = $db->get($name) || die("No backup '$name' found");
-   $program = $backup->prop('type') || 'duplicity';
-   $restore_action = "/etc/e-smith/events/actions/restore-data-$program -b $name";
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backup = $db->get($name) || die("No backup '$name' found");
+my $program = $backup->prop('type') || 'duplicity';
+my $restore_action = "/etc/e-smith/events/actions/restore-data-$program -b $name";
 
 $backup = new NethServer::BackupConfig($name);
 

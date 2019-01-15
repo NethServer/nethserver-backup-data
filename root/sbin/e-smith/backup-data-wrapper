@@ -28,19 +28,11 @@
 
 backup=$1
 ts=$(date +%Y%m%d%H%M)
-cmd="/sbin/e-smith/backup-data"
+cmd="/sbin/e-smith/backup-data -b $backup"
 out_dir="/var/log/backup/"
 
 if [ ! -d $out_dir ]; then
     mkdir -p $out_dir
-fi
-
-if [ -z $backup ]; then
-   backup="backup-data"
-fi
-
-if [ "$backup" != "backup-data" ]; then
-   cmd="$cmd -b $backup"
 fi
 
 set -o pipefail

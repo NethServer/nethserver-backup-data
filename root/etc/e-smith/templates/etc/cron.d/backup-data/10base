@@ -3,7 +3,7 @@
 
     sub cron {
 
-	# configure backup time and reminder times from the configuration db
+ 	    # configure backup time and reminder times from the  db
         my $backupTime = shift;
         my $name = shift || '';
         my $backupMin;
@@ -22,17 +22,6 @@
         # remove leading zeros from minutes
 
         $OUT .="$backupCron root /sbin/e-smith/backup-data-wrapper $name\n";
-    }
-
-    # Default backup-data
-    my $status = ${'backup-data'}{'status'} || 'enabled';
-    if ($status eq 'enabled')
-    {
-        cron(${'backup-data'}{'BackupTime'} || "1:00");
-    }
-    else
-    {
-	$OUT .= "# Backup of data is disabled\n";
     }
 
     # Extra backups

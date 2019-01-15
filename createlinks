@@ -50,61 +50,12 @@ event_actions($event,
 
 
 #--------------------------------------------------
-# actions for nethserver-backup-data-uninstall event
-#--------------------------------------------------
-
-$event = "nethserver-backup-data-uninstall";
-unlink("/etc/cron.d/backup-data");
-
-#--------------------------------------------------
-# actions for pre-backup-data event
-#--------------------------------------------------
-
-$event = "pre-backup-data";
-event_actions($event, 
-   'mount-usb' => '70',
-   'mount-cifs' => '70',
-   'mount-nfs' => '70',
-   'mount-webdav' => '70',
-);
-
-#--------------------------------------------------
 # actions for post-backup-data event
 #--------------------------------------------------
 
 $event = "post-backup-data";
 event_actions($event, 
    'cleanup-data-duplicity' => '70',
-   'disk-usage' => '70',
-   'umount-usb' => '80',
-   'umount-cifs' => '80',
-   'umount-nfs' => '80',
-   'umount-webdav' => '80',
-);
-
-
-#--------------------------------------------------
-# actions for pre-restore-data event
-#--------------------------------------------------
-
-$event = "pre-restore-data";
-event_actions($event, 
-   'mount-usb' => '10',
-   'mount-cifs' => '10',
-   'mount-nfs' => '10',
-   'mount-webdav' => '10',
-);
-
-#--------------------------------------------------
-# actions for post-restore-data event
-#--------------------------------------------------
-
-$event = "post-restore-data";
-event_actions($event, 
-   'umount-usb' => '90',
-   'umount-cifs' => '90',
-   'umount-nfs' => '90',
-   'umount-webdav' => '90',
 );
 
 exit;

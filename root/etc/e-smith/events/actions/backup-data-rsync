@@ -28,19 +28,14 @@ use NethServer::Rsync;
 
 use constant CMD => '/usr/bin/rsync_tmbackup';
 
-my $name = $ARGV[0] || '';
+my $name = $ARGV[0] || die("No name given");
 
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
-my $record;
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-if ($name eq '') {
-    $record = $confdb->get('backup-data') || die("No backup 'backup-data' found");
-} else {
-    $record = $db->get($name) || die("No backup '$name' found");
-}
+my $record = $db->get($name) || die("No backup '$name' found");
 
 my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
 my $backup = new NethServer::BackupData();
@@ -50,13 +45,13 @@ my $backup = new NethServer::BackupData();
 my @include_data_files;
 my @exclude_data_files;
 
-if ( $name ne '' && -f "/etc/backup-data/$name.include" ) {
+if ( -f "/etc/backup-data/$name.include" ) {
     @include_data_files = $backup->load_file_list("/etc/backup-data/$name.include");
 } else {
     @include_data_files = $backup->includes($backup->get_config_dir());
 }
 
-if ( $name ne '' && -f "/etc/backup-data/$name.exclude" ) {
+if ( -f "/etc/backup-data/$name.exclude" ) {
     @exclude_data_files = $backup->load_file_list("/etc/backup-data/$name.exclude");
 } else {
     @exclude_data_files = $backup->excludes($backup->get_config_dir());
@@ -93,7 +88,8 @@ if ($ret != 0) {
    exit 1; 
 }
 
-if ( $name ne '' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+    $backup->disk_usage($name);
     system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 

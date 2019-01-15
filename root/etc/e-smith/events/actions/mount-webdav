@@ -36,11 +36,10 @@ sub ldie;
 # The action must be invoked at least with 1 paramter: an event name (could be a fake one)
 # If a second parameter is passed, it must be a valid key inside the backups db
 my $event = shift || die("No event given");
-my $name = shift || 'backup-data';
+my $name = shift || die("No name given");
 
-exit 0 if ($name ne 'backup-data');
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
 
-my $db = esmith::ConfigDB->open_ro();
 my $mntdir = "/mnt/backup-$name";
 my $backupwk = $db->get($name) || die("No '$name' db entry found\n");
 

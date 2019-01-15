@@ -23,6 +23,7 @@ package NethServer::BackupData;
 use strict;
 use warnings;
 use NethServer::Backup;
+use JSON;
 
 use vars qw($VERSION @ISA @EXPORT_OK);
 
@@ -54,6 +55,41 @@ sub new
     return $self;
 }
 
+=head2 disk_usage
+
+Calculate disk usage of given backup
+
+=cut
+
+sub disk_usage
+{
+    my $self = shift;
+    my $name = shift || warn "disk_usage: no backup name given!";
+    my $duLogFile = "/var/spool/backup/disk_usage-$name";
+    my %du;
+
+    my $mntdir = "/mnt/backup-$name";
+
+    if ($self->is_mounted($mntdir)) {
+        # get disk usage stats
+        if ( @du{qw(source size used avail pcent target)} = split(" ", `/bin/df -P "$mntdir" 2>/dev/null | grep "$mntdir"`) ) {
+            delete @du{'source', 'target'};
+
+            if ( $du{'size'} eq 0 || $du{'used'} lt 0 || $du{'avail'} lt 0 ) {
+                # Unable to determine backup storage capacity
+                @du{'size', 'used', 'avail', 'pcent'} = undef;
+            } else {
+                $du{'pcent'} = sprintf "%.2f", $du{'used'}/$du{'size'}*100;
+                $du{'pcent'} += 0;
+            }
+
+            # output disk usage to file
+            open(FILE, ">$duLogFile");
+            print FILE encode_json(\%du);
+            close(FILE);
+        }
+    }
+}
 
 =head1 DESCRIPTION
 

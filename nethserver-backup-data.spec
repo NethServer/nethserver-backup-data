@@ -31,6 +31,7 @@ mkdir -p root%{perl_vendorlib}
 mkdir -p root/etc/backup-data
 mkdir -p root/var/log/backup
 mkdir -p root/var/spool/backup
+mkdir -p root/etc/e-smith/events/{post-restore-data, pre-backup-data, pre-restore-data}
 mv -v NethServer root%{perl_vendorlib}
 
 %install

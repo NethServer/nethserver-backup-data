@@ -38,18 +38,13 @@ my %options=();
 getopts("hfb:", \%options);
 my $help = $options{h};
 my $formatted = $options{f} || '';
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
-my $backup;
 my $confdb = esmith::ConfigDB->open || die("Could not open config db\n");
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
-if ($name eq '') {
-   $backup = $confdb->get('backup-data');
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backup = $db->get($name) || die("No backup '$name' found");
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backup = $db->get($name) || die("No backup '$name' found");
 my $VFSType = $backup->prop('VFSType') || die("Invalid VFSType");
 my $repo = NethServer::Rsync::prepareRepository($name, $backup);
 
@@ -62,12 +57,7 @@ if ($VFSType eq 'sftp') {
 } else {
 
     if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
-        my $mount;
-        if ($name eq '') {
-            $mount = "/mnt/backup-backup-data";
-        } else {
-            $mount = "/mnt/backup-$name";
-        }
+        my $mount = "/mnt/backup-$name";
 
         my $ret = system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
         if ($ret > 0) {

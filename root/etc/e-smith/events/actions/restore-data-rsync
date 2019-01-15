@@ -41,7 +41,7 @@ my %options=();
 getopts("ht:b:", \%options);
 my $help = $options{h};
 my $time = $options{t} || '';
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
 if ($help)
 {
@@ -54,17 +54,12 @@ use constant CMD => '/usr/bin/rsync';
 my $position = shift @ARGV || '/';
 my @files = @ARGV;
 
-my $record;
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
-if ($name eq '') {
-   $record = $confdb->get('backup-data');
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $record = $db->get($name) || die("No backup '$name' found");
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $record = $db->get($name) || die("No backup '$name' found");
 
 my $VFSType = $record->prop('VFSType') || die("Invalid VFSType");
 

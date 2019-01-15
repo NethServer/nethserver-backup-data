@@ -31,30 +31,19 @@ use constant CMD => '/usr/bin/duplicity';
 # The action must be invoked at least with 1 parameter: an event name (could be a fake one)
 # If a second parameter is passed, it must be a valid key inside the backups db
 my $event = shift || die("No event given");
-my $name = shift || 'backup-data';
+my $name = shift || die("No name given");
 
 my $opts = '';
-my $dst = "";
-my $backupwk;
-my $mntdir = '';
-my $cacheDir = '';
 
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
-if ($name eq 'backup-data') {
-   $backupwk = $confdb->get('backup-data') || die "No backup-data db entry found\n";;
-   $cacheDir = "/var/lib/nethserver/backup/duplicity/";
-   $mntdir = '/mnt/backup-backup-data';
-   $dst = " file://$mntdir/$systemname ";
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $backupwk = $db->get($name) || die("No backup '$name' found");
-   $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
-   $mntdir = "/mnt/backup-$name";
-   $dst = " file://$mntdir/$systemname ";
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $backupwk = $db->get($name) || die("No backup '$name' found");
+my $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
+my $mntdir = "/mnt/backup-$name";
+my $dst = " file://$mntdir/$systemname ";
 
 my $cot = $backupwk->prop('CleanupOlderThan') || 'never';
 

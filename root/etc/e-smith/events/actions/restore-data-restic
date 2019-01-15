@@ -41,7 +41,7 @@ my %options=();
 getopts("ht:b:", \%options);
 my $help = $options{h};
 my $time = $options{t} || 'latest';
-my $name = $options{b} || '';
+my $name = $options{b} || die("No name given");
 
 if ($help)
 {
@@ -54,18 +54,12 @@ use constant CMD => '/usr/bin/restic';
 my $position = shift @ARGV || '/';
 my @files = @ARGV;
 
-my $record;
 my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
-if ($name eq '') {
-   $record = $confdb->get('backup-data');
-   $name = 'backup-data';
-} else {
-   my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-   $record = $db->get($name) || die("No backup '$name' found");
-}
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my $record = $db->get($name) || die("No backup '$name' found");
 
 my $type = $record->prop('Type') || 'full';
 my $forceFull = $record->prop('ForceFull') || 'enabled';
@@ -94,7 +88,7 @@ if (@files) {  # restore selected files
 
 my $ret = system($cmd);
 
-if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 

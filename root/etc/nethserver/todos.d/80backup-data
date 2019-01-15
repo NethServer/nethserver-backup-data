@@ -29,7 +29,7 @@ import subprocess
 serverid = ''
 
 try:
-    p = subprocess.Popen(['/sbin/e-smith/config', 'getprop', 'backup-data', 'status'], stdout=subprocess.PIPE)
+    p = subprocess.Popen(['/sbin/e-smith/db', 'backups', 'getprop', 'backup-data', 'status'], stdout=subprocess.PIPE)
     status, err = p.communicate()
 except:	
     exit(1)

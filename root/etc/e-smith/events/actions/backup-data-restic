@@ -35,14 +35,8 @@ my $confdb = esmith::ConfigDB->open;
 my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
 $systemname = $systemname->prop('type');
 
-my $record;
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-if ($name eq '') {
-    $record = $confdb->get('backup-data') || die("No backup 'backup-data' found");
-    $name = "backup-data";
-} else {
-    $record = $db->get($name) || die("No backup '$name' found");
-}
+my $record = $db->get($name) || die("No backup '$name' found");
 
 my $restic_password = NethServer::Password::store("restic_$name"); 
 my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
@@ -72,13 +66,13 @@ $opts .= " --tag $name";
 my @include_data_files;
 my @exclude_data_files;
 
-if ( $name ne 'backup-data' && -f "/etc/backup-data/$name.include" ) {
+if ( -f "/etc/backup-data/$name.include" ) {
     @include_data_files = $backup->load_file_list("/etc/backup-data/$name.include");
 } else {
     @include_data_files = $backup->includes($backup->get_config_dir());
 }
 
-if ( $name ne 'backup-data' && -f "/etc/backup-data/$name.exclude" ) {
+if ( -f "/etc/backup-data/$name.exclude" ) {
     @exclude_data_files = $backup->load_file_list("/etc/backup-data/$name.exclude");
 } else {
     @exclude_data_files = $backup->excludes($backup->get_config_dir());
@@ -124,7 +118,8 @@ if ($cleanup ne 'never') {
     }
 }
 
-if ( $name ne 'backup-data' && -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
+    $backup->disk_usage($name);
     system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
