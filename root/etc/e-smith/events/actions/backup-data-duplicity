@@ -25,6 +25,7 @@ use esmith::ConfigDB;
 use File::Temp;
 use Time::localtime;
 use NethServer::BackupData;
+use File::Copy;
 
 use constant CMD => '/usr/bin/duplicity';
 use constant DEBUG => 0;
@@ -138,6 +139,8 @@ my $ret = system(CMD." $opts / $dst");
 if ($ret != 0) {
    error("Duplicity backup failed");
 }
+
+copy("/var/lib/nethserver/backup/backup-config.tar.xz", "$mntdir/$systemname/backup-config.tar.xz");
 
 if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
     $backup->disk_usage($name);
