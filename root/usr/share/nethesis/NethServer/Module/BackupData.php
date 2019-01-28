@@ -56,6 +56,22 @@ class BackupData extends \Nethgui\Controller\AbstractController
     public function initialize()
     {
         parent::initialize();
+        # Create detauld backup record
+        $status = $this->getPlatform()->getDatabase('backups')->getProp('backup-data','status');
+        if (!$status) {
+            $this->getPlatform()->getDatabase('backups')->setKey('backup-data', 'duplicity', array(
+                'BackupTime' => '0 1 * * *',
+                'CleanupOlderThan' => 'never',
+                'FullDay' => 0,
+                'Notify' => 'error',
+                'NotifyFrom' => '',
+                'NotifyTo' => 'root@localhost',
+                'Program' => 'duplicity',
+                'Type' => 'incremental',
+                'status' => 'disabled'
+            ));
+        }
+
         $fromValidator = $this->createValidator()->orValidator(
              $this->createValidator(\Nethgui\System\PlatformInterface::EMPTYSTRING),
              $this->createValidator(Validate::EMAIL)
