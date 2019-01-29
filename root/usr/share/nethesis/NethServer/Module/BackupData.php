@@ -76,14 +76,16 @@ class BackupData extends \Nethgui\Controller\AbstractController
              $this->createValidator(\Nethgui\System\PlatformInterface::EMPTYSTRING),
              $this->createValidator(Validate::EMAIL)
         );
+        $notifyToValidator = $this->createValidator()->orValidator(
+            $this->createValidator(Validate::EMAIL),
+            $this->createValidator()->equalTo('root@localhost')
+        );
         $this->declareParameter('status', Validate::SERVICESTATUS, array('backups', 'backup-data', 'status'));
         $this->declareParameter('BackupTime', $this->createValidator()->regexp('/^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])$/'), array('backups', 'backup-data', 'BackupTime'));
         $this->declareParameter('Type', $this->createValidator()->memberOf(array('full','incremental')), array('backups', 'backup-data', 'Type'));
         $this->declareParameter('FullDay', $this->createValidator()->integer()->greatThan(-1)->lessThan(7), array('backups', 'backup-data', 'FullDay'));
 
-        $this->declareParameter('notifyToType', $this->createValidator()->memberOf(array('admin','custom')), array());
-        $this->declareParameter('notifyToCustom', Validate::EMAIL, array());
-        $this->declareParameter('notifyTo', FALSE, array('backups', 'backup-data', 'NotifyTo')); # not accessibile from UI, position is IMPORTANT
+        $this->declareParameter('notifyTo', $notifyToValidator, array('backups', 'backup-data', 'NotifyTo'));
         $this->declareParameter('notify', $this->createValidator()->memberOf($this->notifytypes), array('backups', 'backup-data', 'Notify'));
         $this->declareParameter('notifyFrom', $fromValidator, array('backups', 'backup-data', 'NotifyFrom'));
 
@@ -213,27 +215,6 @@ class BackupData extends \Nethgui\Controller\AbstractController
         parent::validate($report);
     }
 
-
-    public function readNotifyToCustom()
-    {
-        if ($this->parameters["notifyToType"] === 'custom') {
-             return $this->parameters["notifyTo"];
-        } else {
-             return "";
-        }
-    }
-
-    public function writeNotifyToCustom($value)
-    {
-        if ($this->parameters["notifyToType"] === 'custom') {
-             $this->parameters["notifyTo"] = $value;
-        } else {
-             $this->parameters["notifyTo"] = "root@localhost";
-        }
-        return true;
-    }
-
-
     public function readNotifyFrom()
     {
         $sender = $this->getPlatform()->getDatabase('configuration')->getProp('root','SenderAddress');
@@ -249,26 +230,6 @@ class BackupData extends \Nethgui\Controller\AbstractController
         $sender = $this->getPlatform()->getDatabase('configuration')->getProp('root','SenderAddress');
         if (!$sender) {
             return array($v);
-        }
-    }
-
-    public function readNotifyToType()
-    {
-        $current = $this->getPlatform()->getDatabase('backups')->getProp('backup-data','NotifyTo');
-        if($current == "root@localhost") {
-            return "admin";
-        } else {
-            return "custom";
-        }
-    }
-
-    public function writeNotifyToType($value)
-    {
-        if ($this->parameters["notifyToType"] === 'admin') {
-             $this->parameters["notifyTo"] = 'root@localhost';
-             return 'admin';
-        } else {
-             return "";
         }
     }
 
