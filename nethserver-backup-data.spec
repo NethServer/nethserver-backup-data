@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.4.5
+Version: 1.5.0
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -55,6 +55,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Wed Jan 30 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.0-1
+- Remove single backup data - NethServer/dev#5691
+
 * Tue Jan 08 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.4.5-1
 - CIFS Backup fails after upgrade to 7.6 - NethServer/dev#5687
 
