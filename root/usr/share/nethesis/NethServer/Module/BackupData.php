@@ -77,8 +77,11 @@ class BackupData extends \Nethgui\Controller\AbstractController
              $this->createValidator(Validate::EMAIL)
         );
         $notifyToValidator = $this->createValidator()->orValidator(
-            $this->createValidator(Validate::EMAIL),
-            $this->createValidator()->equalTo('root@localhost')
+            $this->createValidator()->isEmpty(),
+            $this->createValidator()->orValidator(
+                $this->createValidator()->equalTo('root@localhost'),
+                $this->createValidator(Validate::EMAIL)
+            )
         );
         $this->declareParameter('status', Validate::SERVICESTATUS, array('backups', 'backup-data', 'status'));
         $this->declareParameter('BackupTime', $this->createValidator()->regexp('/^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])$/'), array('backups', 'backup-data', 'BackupTime'));

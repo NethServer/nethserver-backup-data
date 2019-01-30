@@ -66,7 +66,7 @@ $notification = $view->panel()
         ->insert($view->radioButton('notify', 'always'))
         ->insert($view->radioButton('notify', 'never'))
      )
-    ->insert($view->textInput('notifyTo'))
+    ->insert($view->textInput('notifyTo')->setAttribute('placeholder', 'root@localhost'))
     ->insert($view->textInput('notifyFrom', $view['SenderAddress'] ? ($view::STATE_READONLY | $view::STATE_DISABLED) : 0))
 ;
 
