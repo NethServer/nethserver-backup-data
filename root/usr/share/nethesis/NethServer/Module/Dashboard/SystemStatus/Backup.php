@@ -48,7 +48,45 @@ class Backup extends \Nethgui\Controller\AbstractController
         $backup['vfs'] = $br['VFSType'] ? $br['VFSType'] : '-';
         $backup['status'] = $br['status'];
         $backup['time'] = $br['BackupTime'];
-
+        
+        $orario = explode(" ",$backup['time']);
+      
+        function formatOre($h){
+	        if(strlen($h)==1){return "0".$h;}else{return $h;}
+        }
+        
+        function formatMin($m){
+	         if(strlen($m)==1){return "0".$m;}else{return $m;}
+        }
+        
+        function formatDay($d){
+	        switch($d){
+		        case 0: return "Sunday";
+		        	break;
+		        case 1: return "Monday";
+		        	break;
+		        case 2: return "Tuesday";
+		        	break;
+		        case 3: return "Wednesday";
+		        	break;
+		        case 4: return "Thursday";
+		        	break;
+		        case 5: return "Friday";
+		        	break;
+		        case 6: return "Saturday";
+	        }
+        }
+        
+        if($orario[1] == "*" && $orario[2] == "*" && $orario[3] == "*" && $orario[4] == "*"){
+	        $backup['time'] = "Every hour at minute ".formatMin($orario[0]);
+        }else if($orario[2] == "*" && $orario[3] == "*" && $orario[4] == "*"){
+	        $backup['time'] = 'Every day at '.formatOre($orario[1]).":".formatMin($orario[0]);
+        }else if($orario[2] == "*" && $orario[3] == "*"){
+			$backup['time'] = "Every ".formatDay($orario[4])." at ".formatOre($orario[1]).":".formatMin($orario[0]);
+        }else if($orario[3] == "*" && $orario[4] == "*"){
+	        $backup['time'] = "Every month on ".$orario[2]." at ".formatOre($orario[1]).":".formatMin($orario[0]);
+        }		
+		       
         $disk_usage_file = "/var/spool/backup/disk_usage-backup-data";
         if (file_exists($disk_usage_file)) {
             $file = file_get_contents("$disk_usage_file");
