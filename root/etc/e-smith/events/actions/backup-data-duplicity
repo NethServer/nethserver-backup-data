@@ -50,6 +50,7 @@ my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 my $fullday = $backupwk->prop('FullDay') || 0;
 my $volSize = $backupwk->prop('VolSize') || '250';
 my $opts = '--allow-source-mismatch';
+my $cot = $backupwk->prop('CleanupOlderThan') || 'never';
 
 our $backup = new NethServer::BackupData();
 
@@ -141,6 +142,15 @@ if ($ret != 0) {
 }
 
 copy("/var/lib/nethserver/backup/backup-config.tar.xz", "$mntdir/$systemname/backup-config.tar.xz");
+
+if ($cot ne 'never') {
+  # cleanup old backups
+  $opts = " --archive-dir $cacheDir ";
+  $ret = system(CMD." remove-older-than $cot $opts $dst --force");
+  if ($ret != 0) {
+      print "Duplicity cleanup failed\n";
+  }
+}
 
 if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
     $backup->disk_usage($name);
