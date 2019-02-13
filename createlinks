@@ -49,4 +49,13 @@ event_actions($event,
 );
 
 
+#--------------------------------------------------
+# actions for post-backup-data event
+#--------------------------------------------------
+
+$event = "post-backup-data";
+event_actions($event, 
+   'cleanup-data-duplicity' => '70',
+);
+
 exit;

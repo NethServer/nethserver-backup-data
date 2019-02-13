@@ -1,0 +1,57 @@
+#!/usr/bin/perl -w
+
+#
+# Copyright (C) 2013 Nethesis S.r.l.
+# http://www.nethesis.it - support@nethesis.it
+# 
+# This script is part of NethServer.
+# 
+# NethServer is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or any later version.
+# 
+# NethServer is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# Remove stale duplicity caches
+
+use strict;
+use warnings;
+use esmith::ConfigDB;
+use File::Path qw(remove_tree);
+
+my $event = shift;
+my $name = shift;
+
+my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
+my %backups;
+foreach ($db->get_all_by_prop('type' => 'duplicity')) {
+    $backups{$_->key} = 1;
+}
+
+my $base = '/var/lib/nethserver/backup/duplicity';
+opendir(my $dh, $base) || exit 0;
+while (readdir $dh) {
+    # skip existing backups
+    next if (defined($backups{$_}));
+    # skip current dir
+    next if ($_ eq '.' || $_ eq '..');
+
+    # remove dangling dir
+    if (-d "$base/$_") {
+        remove_tree("$base/$_");
+        print("Cleanup duplicity cache dir: $base/$_\n");
+    }
+}
+closedir $dh;
+
+
+exit (0);
+
