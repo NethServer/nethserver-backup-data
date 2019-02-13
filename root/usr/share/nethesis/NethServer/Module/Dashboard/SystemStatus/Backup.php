@@ -25,15 +25,22 @@ namespace NethServer\Module\Dashboard\SystemStatus;
  *
  * @author Giacomo Sanchietti
  */
+ 
 class Backup extends \Nethgui\Controller\AbstractController
 {
 
     public $sortId = 30;
  
     private $backup = array();
-
-    private function readBackup()
+	
+    private  function formatDay($d,$view){
+	$days = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+	return $view->translate($days[$d]);
+    }
+	
+    private function readBackup($view)
     {
+
         $backup = array();
         $status_file = "/var/spool/backup/status-backup-data";
         if (file_exists($status_file)) {
@@ -49,44 +56,18 @@ class Backup extends \Nethgui\Controller\AbstractController
         $backup['status'] = $br['status'];
         $backup['time'] = $br['BackupTime'];
         
-        $orario = explode(" ",$backup['time']);
-      
-        function formatOre($h){
-	        if(strlen($h)==1){return "0".$h;}else{return $h;}
+        $hour = explode(" ",$backup['time']);
+              
+        if($hour[1] == "*" && $hour[2] == "*" && $hour[3] == "*" && $hour[4] == "*"){
+	        $backup['time'] = $view->translate('EveryHour')."&nbsp;".sprintf('%02d',$hour[0]);
+        }else if($hour[2] == "*" && $hour[3] == "*" && $hour[4] == "*"){
+ 	        $backup['time'] = $view->translate('EveryDay')."&nbsp;".sprintf('%02d',$hour[1]).":".sprintf('%02d',$hour[0]);
+        }else if($hour[2] == "*" && $hour[3] == "*"){
+		$backup['time'] = $view->translate('EveryWeek')."&nbsp;".$this->formatDay($hour[4],$view)." at ".sprintf('%02d',$hour[1]).":".sprintf('%02d',$hour[0]);
+        }else if($hour[3] == "*" && $hour[4] == "*"){
+	        $backup['time'] = $view->translate('EveryMonth')."&nbsp;".$hour[2]." at ".sprintf('%02d',$hour[1]).":".sprintf('%02d',$hour[0]);
         }
-        
-        function formatMin($m){
-	         if(strlen($m)==1){return "0".$m;}else{return $m;}
-        }
-        
-        function formatDay($d){
-	        switch($d){
-		        case 0: return "Sunday";
-		        	break;
-		        case 1: return "Monday";
-		        	break;
-		        case 2: return "Tuesday";
-		        	break;
-		        case 3: return "Wednesday";
-		        	break;
-		        case 4: return "Thursday";
-		        	break;
-		        case 5: return "Friday";
-		        	break;
-		        case 6: return "Saturday";
-	        }
-        }
-        
-        if($orario[1] == "*" && $orario[2] == "*" && $orario[3] == "*" && $orario[4] == "*"){
-	        $backup['time'] = "Every hour at minute ".formatMin($orario[0]);
-        }else if($orario[2] == "*" && $orario[3] == "*" && $orario[4] == "*"){
-	        $backup['time'] = 'Every day at '.formatOre($orario[1]).":".formatMin($orario[0]);
-        }else if($orario[2] == "*" && $orario[3] == "*"){
-			$backup['time'] = "Every ".formatDay($orario[4])." at ".formatOre($orario[1]).":".formatMin($orario[0]);
-        }else if($orario[3] == "*" && $orario[4] == "*"){
-	        $backup['time'] = "Every month on ".$orario[2]." at ".formatOre($orario[1]).":".formatMin($orario[0]);
-        }		
-		       
+        		 
         $disk_usage_file = "/var/spool/backup/disk_usage-backup-data";
         if (file_exists($disk_usage_file)) {
             $file = file_get_contents("$disk_usage_file");
@@ -110,10 +91,11 @@ class Backup extends \Nethgui\Controller\AbstractController
     public function prepareView(\Nethgui\View\ViewInterface $view)
     {
         if (!$this->backup) {
-            $this->backup = $this->readBackup();
+            $this->backup = $this->readBackup($view);
         }
         foreach ($this->backup as $k => $v) {
             $view['backup_' . $k] = $v;
         }
-    }
+    }	
+       
 }
