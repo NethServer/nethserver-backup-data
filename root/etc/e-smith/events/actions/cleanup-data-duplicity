@@ -20,53 +20,38 @@
 # along with NethServer.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# Remove stale duplicity caches
+
 use strict;
+use warnings;
 use esmith::ConfigDB;
-use File::Temp;
-use Time::localtime;
-use NethServer::BackupData;
+use File::Path qw(remove_tree);
 
-use constant CMD => '/usr/bin/duplicity';
-
-# The action must be invoked at least with 1 parameter: an event name (could be a fake one)
-# If a second parameter is passed, it must be a valid key inside the backups db
-my $event = shift || die("No event given");
-my $name = shift || die("No name given");
-
-my $opts = '';
-
-my $confdb = esmith::ConfigDB->open;
-my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found\n";
-$systemname = $systemname->prop('type');
+my $event = shift;
+my $name = shift;
 
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
-my $backupwk = $db->get($name) || die("No backup '$name' found");
-my $cacheDir = "/var/lib/nethserver/backup/duplicity/$name/";
-my $mntdir = "/mnt/backup-$name";
-my $dst = " file://$mntdir/$systemname ";
-
-my $cot = $backupwk->prop('CleanupOlderThan') || 'never';
-
-# skip all if cleanup is not set
-exit(0) unless($cot ne "never");
-
-# set duplicity cache dir
-$opts .= " --archive-dir $cacheDir ";
-my $ret = system(CMD." remove-older-than $cot $opts $dst --force");
-
-if ($ret != 0) {
-   error("Cleanup of old backup failed");
+my %backups;
+foreach ($db->get_all_by_prop('type' => 'duplicity')) {
+    $backups{$_->key} = 1;
 }
-$ret = system(CMD." cleanup --no-encryption $opts $dst --force");
-if ($ret != 0) {
-   error("Metadata cleanup failed");
+
+my $base = '/var/lib/nethserver/backup/duplicity';
+opendir(my $dh, $base) || exit 0;
+while (readdir $dh) {
+    # skip existing backups
+    next if (defined($backups{$_}));
+    # skip current dir
+    next if ($_ eq '.' || $_ eq '..');
+
+    # remove dangling dir
+    if (-d "$base/$_") {
+        remove_tree("$base/$_");
+        print("Cleanup duplicity cache dir: $base/$_\n");
+    }
 }
+closedir $dh;
+
 
 exit (0);
-
-sub error {
-    my $msg = shift;
-    print sprintf("$msg\n",@_);
-    exit 1;
-}
 
