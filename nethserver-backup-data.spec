@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.5.0
+Version: 1.5.1
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -55,6 +55,10 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Fri Feb 15 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.1-1
+- Backup: duplicity doesn't cleanup old backups - Bug NethServer/dev#5710
+- Dashboard: improve date visualization - Thanks to Federico Ballarini
+
 * Wed Jan 30 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.0-1
 - Remove single backup data - NethServer/dev#5691
 
