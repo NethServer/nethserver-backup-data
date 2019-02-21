@@ -31,7 +31,9 @@ mkdir -p root%{perl_vendorlib}
 mkdir -p root/etc/backup-data
 mkdir -p root/var/log/backup
 mkdir -p root/var/spool/backup
-mkdir -p root/etc/e-smith/events/{post-restore-data, pre-backup-data, pre-restore-data}
+mkdir -p root/etc/e-smith/events/post-restore-data
+mkdir -p root/etc/e-smith/events/pre-backup-data
+mkdir -p root/etc/e-smith/events/pre-restore-data
 mv -v NethServer root%{perl_vendorlib}
 
 %install
@@ -46,6 +48,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 %defattr(-,root,root)
 %doc COPYING
 %dir %{_nseventsdir}/%{name}-update
+%dir %{_nseventsdir}/post-restore-data
+%dir %{_nseventsdir}/pre-backup-data
+%dir %{_nseventsdir}/pre-restore-data
 %dir /var/log/backup
 %dir /var/spool/backup
 %dir /etc/backup-data
