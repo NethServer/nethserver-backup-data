@@ -55,8 +55,9 @@ my $usblabel = $backupwk->prop('USBLabel') || die "No USBLabel set";
 our $b = new NethServer::BackupData();
 
 # get the device name
-my $device = qx( /sbin/blkid -u filesystem -L $usblabel);
+my $device = qx(/sbin/blkid -u filesystem -L $usblabel);
 chomp $device; # remove trailing new line
+die("Device for $usblabel not found") if ($device eq "");
 
 # creating mount directory
 if ( ! -d $mntdir ) {
@@ -69,7 +70,7 @@ if (!$b->is_mounted($device) && !$b->is_mounted($mntdir)) {
     $err = qx(/bin/mount $device "$mntdir" 2>&1);
     if ($err) {
         $err =~s/\n/ /g;
-        ldie("Error while mounting /$usblabel : " . $err);        
+        ldie("Error while mounting /$usblabel : " . $err);
     }
 }
 
