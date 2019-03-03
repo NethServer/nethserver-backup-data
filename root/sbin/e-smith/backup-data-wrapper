@@ -29,20 +29,20 @@
 backup=$1
 ts=$(date +%Y%m%d%H%M)
 cmd="/sbin/e-smith/backup-data -b $backup"
-out_dir="/var/log/backup/"
+out_dir="/var/log/backup"
 
 if [ ! -d $out_dir ]; then
     mkdir -p $out_dir
 fi
 
 set -o pipefail
-log=$out_dir"backup-"$backup"-"$ts".log"
-output=$($cmd 2>&1 | tee $log)
+log="${out_dir}/backup-${backup}-${ts}.log"
+output=$($cmd 2>&1 | tee "$log")
 exit_code=$?
 
 # exec all scripts inside /etc/backup-data.hooks
 for file in /etc/backup-data.hooks/*; do
-    [ -f "$file" ] && [ -x "$file" ] && "$file" $backup $log $exit_code
+    [ -f "$file" ] && [ -x "$file" ] && "$file" "$backup" "$log" $exit_code
 done
 
 set +o pipefail
