@@ -9,6 +9,7 @@ $L['3_label'] = 'Wednesday';
 $L['4_label'] = 'Thursday';
 $L['5_label'] = 'Friday';
 $L['6_label'] = 'Saturday';
+$L['1D_label'] = '1 day';
 $L['7D_label'] = '1 week';
 $L['14D_label'] = '2 weeks';
 $L['28D_label'] = '1 month';
