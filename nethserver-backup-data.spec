@@ -1,4 +1,4 @@
-%define tmbackup_commit c40c3b2b779e4b2885884f9be49f6fea81c4c2b9
+%define tmbackup_commit 5c8b5ab36b4f0cff87228f3b2a926ca2179de86b
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
