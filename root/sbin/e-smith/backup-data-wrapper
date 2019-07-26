@@ -28,6 +28,7 @@
 
 backup=$1
 ts=$(date +%Y%m%d%H%M)
+epoch=$(date +%s)
 cmd="/sbin/e-smith/backup-data -b $backup"
 out_dir="/var/log/backup"
 
@@ -42,7 +43,7 @@ exit_code=$?
 
 # exec all scripts inside /etc/backup-data.hooks
 for file in /etc/backup-data.hooks/*; do
-    [ -f "$file" ] && [ -x "$file" ] && "$file" "$backup" "$log" $exit_code
+    [ -f "$file" ] && [ -x "$file" ] && "$file" "$backup" "$log" $exit_code "$epoch"
 done
 
 set +o pipefail
