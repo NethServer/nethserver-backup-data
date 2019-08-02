@@ -53,7 +53,7 @@ if ($VFSType eq 'sftp') {
     my $user = $backup->prop('SftpUser');
     my $dir = $backup->prop('SftpDirectory');
 
-    system("ssh $user\@$host 'cd $dir/latest; find . ! -name 'backup.marker' | cut -d'.' -f2- '");
+    system("ssh $user\@$host 'cd $dir/latest; find . | cut -d'.' -f2- '");
 } else {
 
     if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
@@ -63,7 +63,7 @@ if ($VFSType eq 'sftp') {
         if ($ret > 0) {
             die("Can't mount backup directory");
         }
-        system('cd '.$mount.'/'.$systemname.'/latest && find . ! -name "backup.marker" | cut -d"." -f2-');
+        system('cd '.$mount.'/'.$systemname.'/latest && find . | cut -d"." -f2-');
     }
 }
 
