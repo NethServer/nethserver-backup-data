@@ -62,6 +62,7 @@ my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\
 my $record = $db->get($name) || die("No backup '$name' found");
 
 my $VFSType = $record->prop('VFSType') || die("Invalid VFSType");
+my $port = $record->prop('SftpPort') || '22';
 
 my $backup = new NethServer::BackupData();
 
@@ -85,7 +86,7 @@ if ($time) {
     $repo .= "/latest/ ";
 }
 
-my $ret = system(CMD." $opts $repo $position");
+my $ret = system(CMD." -p $port $opts $repo $position");
 
 if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
     system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
