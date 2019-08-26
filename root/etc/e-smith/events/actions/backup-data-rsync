@@ -38,6 +38,7 @@ my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\
 my $record = $db->get($name) || die("No backup '$name' found");
 
 my $VFSType = $record->prop('VFSType') || die("No VFSType specified");
+my $port = $record->prop('SftpPort') || '22';
 my $backup = new NethServer::BackupData();
 
 
@@ -81,7 +82,7 @@ foreach  (@include_data_files) {
 my $opts = NethServer::Rsync::initOptions($tmp_include, $tmp_exclude);
 my $repo = NethServer::Rsync::prepareRepository($systemname, $record);
 
-my $ret = system(CMD." $opts / $repo");
+my $ret = system(CMD." -p $port $opts / $repo");
 
 if ($ret != 0) {
    error("Backup failed");
