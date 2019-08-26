@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.5.4
+Version: 1.6.0
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -60,6 +60,11 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Mon Aug 26 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.6.0-1
+- Backup data restore Cockpit UI - NethServer/dev#5796
+- Backup data list (rsync): list only from latest - Bug NethServer/dev#5799
+- backup-data command: improved help message (#43)
+
 * Fri Jun 14 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.5.4-1
 - Incorrect rsync backup retention - NethServer/dev#5776
 
