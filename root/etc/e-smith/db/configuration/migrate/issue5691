@@ -31,7 +31,9 @@
     }
 
     # move all remaining props to new record
-    $bdb->new_record('backup-data', \%props); 
+    if(scalar keys %props > 0) {
+        $bdb->new_record('backup-data', \%props);
+    }
     '';
 }
 
