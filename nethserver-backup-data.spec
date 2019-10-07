@@ -1,4 +1,4 @@
-%define tmbackup_commit 5c8b5ab36b4f0cff87228f3b2a926ca2179de86b
+%define tmbackup_commit da904fe66ce384ff3f844fdfc81b6a4d95410d9a
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
@@ -6,7 +6,7 @@ Version: 1.6.2
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
-Source1: https://raw.githubusercontent.com/kapitainsky/rsync-time-backup/%{tmbackup_commit}/rsync_tmbackup.sh
+Source1: https://raw.githubusercontent.com/laurent22/rsync-time-backup/%{tmbackup_commit}/rsync_tmbackup.sh
 URL: %{url_prefix}/%{name}
 
 BuildArch: noarch
