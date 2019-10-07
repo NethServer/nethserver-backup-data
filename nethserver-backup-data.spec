@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.6.2
+Version: 1.6.3
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -60,6 +60,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Mon Oct 07 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.6.3-1
+- Switch back to laurent22/rsync-time-backup - NethServer/nethserver-backup-data#48
+
 * Thu Sep 05 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.6.2-1
 - migrate. avoid empty backup record (#47)
 
