@@ -68,6 +68,11 @@ my $timeout = 0;
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
 my $backup = $db->get($name) || die("No backup '$name' found");
 my $program = $backup->prop('type') || 'duplicity';
+
+# Fail early if backup disabled since nfs, cifs and usb mounts will not be avaible
+my $backup_status = $backup->prop('status') || 'disabled';
+die("Backup $name is disabled") if ($backup_status eq 'disabled');
+
 out("Backup: $name");
 my $duLogFile = "/var/spool/backup/disk_usage-$name";
 
