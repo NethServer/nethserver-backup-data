@@ -60,6 +60,9 @@ foreach (@ARGV) {
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
 my $backupwk = $db->get($name) || die("No backup '$name' found");
 my $program = $backupwk->prop('type');
+# Fail early if backup disabled since nfs, cifs and usb mounts will not be avaible
+my $backup_status = $backupwk->prop('status') || 'disabled';
+die("Backup $name is disabled") if ($backup_status eq 'disabled');
 
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
 
