@@ -53,8 +53,12 @@ if ($formatted) {
     system("/usr/bin/duplicity list-current-files --log-file=".$tmp->filename." --archive-dir $archive $path >/dev/null");
     while(<$tmp>)  {
         # Line example: INFO 10 20140429T154215Z 'var/lib/nethserver/winregistry-patches'
-        my ($tag, $number, $date, $file) = split(/\s/);
-        if ($tag eq 'INFO') {
+        # 0: tag, 1: number, 2: date, 3..: file
+        my @parts = split(/\s/);
+        if ($parts[0] and $parts[0] eq 'INFO') {
+           my $date = $parts[2];
+           my $size = @parts;
+           my $file = join (' ', @parts[3..$size-2]); # -2 because last parts is file type (dir, reg...)
            $file =~ s/'//g;
            print "$date $file\n";
         }
