@@ -52,8 +52,6 @@ if ($formatted) {
     my $tmp = File::Temp->new( UNLINK => 1);
     system("/usr/bin/duplicity list-current-files --log-file=".$tmp->filename." --archive-dir $archive $path >/dev/null");
     while(<$tmp>)  {
-        chomp;
-        next if (!$_);
         # Line example: INFO 10 20140429T154215Z 'var/lib/nethserver/winregistry-patches'
         if ($_ =~ /^INFO\s(.*)\s(.*)\s'(.*)'/) {
            print "$2 $3\n";
