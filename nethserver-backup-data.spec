@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.6.4
+Version: 1.6.5
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -60,6 +60,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Tue Nov 12 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.6.5-1
+- Duplicity backup-data-list missing files with spaces - Bug NethServer/dev#5898
+
 * Thu Oct 31 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.6.4-1
 - Restic backup over local usb may write to root filesystem - Bug NethServer/dev#5876
 
