@@ -23,7 +23,6 @@
 
 use strict;
 use esmith::ConfigDB;
-use File::Temp;
 
 use Getopt::Std;
 
@@ -49,15 +48,8 @@ my $path = "file:///mnt/backup-$name/$systemname";
 my $archive = "/var/lib/nethserver/backup/duplicity/$name/";
 
 if ($formatted) {
-    my $tmp = File::Temp->new( UNLINK => 1);
-    system("/usr/bin/duplicity list-current-files --log-file=".$tmp->filename." --archive-dir $archive $path >/dev/null");
-    while(<$tmp>)  {
-        # Line example: INFO 10 20140429T154215Z 'var/lib/nethserver/winregistry-patches'
-        if ($_ =~ /^INFO\s(.*)\s(.*)\s'(.*)'/) {
-           print "$2 $3\n";
-        }
-   }
+    system("/usr/bin/duplicity list-current-files --archive-dir $archive $path | sed '1,2d' | cut -c 26- | sed 's#^#/#'");
 } else {
-   system("/usr/bin/duplicity list-current-files --archive-dir $archive $path");
+    system("/usr/bin/duplicity list-current-files --archive-dir $archive $path");
 }
 
