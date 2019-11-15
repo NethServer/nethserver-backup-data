@@ -44,7 +44,7 @@ my $cleanup = $record->prop('CleanupOlderThan') || 'never';
 $cleanup = lc($cleanup);
 my $prune = $record->prop('Prune') || '0';
 my $prune_opts = '';
-my $opts = NethServer::Restic::initOptions($name);
+my $opts = join(" ",NethServer::Restic::initOptions($name));
 my $restic_repository = NethServer::Restic::prepareRepository($systemname, $record);
 our $backup = new NethServer::BackupData();
 

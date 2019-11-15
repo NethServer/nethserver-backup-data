@@ -45,7 +45,7 @@ my $systemname = $confdb->get('SystemName') or die "No SystemName db entry found
 $systemname = $systemname->prop('type');
 my $db = esmith::ConfigDB->open_ro('backups') || die("Could not open backups db\n");
 my $backup = $db->get($name) || die("No backup '$name' found");
-my $opts = NethServer::Restic::initOptions($name);
+my $opts = join(" ",NethServer::Restic::initOptions($name));
 
 my $repo = NethServer::Restic::prepareRepository($systemname, $backup);
 
