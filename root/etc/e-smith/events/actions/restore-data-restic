@@ -66,7 +66,7 @@ my $forceFull = $record->prop('ForceFull') || 'enabled';
 my $VFSType = $record->prop('VFSType') || 'UNKNOWN';
 my $mntdir = $record->prop('Mount') || '/mnt/backup';
 my $src = "";
-my $opts = NethServer::Restic::initOptions($name);
+my @opts = NethServer::Restic::initOptions($name);
 my $restic_repository = NethServer::Restic::prepareRepository($systemname, $record);
 my $backup = new NethServer::BackupData($name);
 
@@ -76,17 +76,17 @@ if ($restic_repository eq '') {
     exit 1;
 }
 
-$opts .= " --repo $restic_repository";
+push(@opts, '--repo', $restic_repository);
 
-my $cmd = CMD." $opts restore $time --target $position ";
+my @cmd = (CMD, @opts, 'restore', $time, '--target', $position);
 
 if (@files) {  # restore selected files
     foreach (@files) {
-        $cmd .= " --include '$_' "
+        push(@cmd, '--include', $_);
     } 
 }
 
-my $ret = system($cmd);
+my $ret = system(@cmd);
 
 if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");

@@ -55,14 +55,14 @@ Usage example:
 
 =head2 initOptions
 
-Return a string representing default restic options.
+Return an array representing default restic options.
 
 =cut
 
 sub initOptions {
    my $name = shift || return "";
 
-   return " --cache-dir /var/lib/nethserver/backup/restic/$name --password-file /var/lib/nethserver/secrets/restic_$name";
+   return ('--cache-dir', "/var/lib/nethserver/backup/restic/$name", '--password-file', "/var/lib/nethserver/secrets/restic_$name");
 }
 
 =head2 prepareRepository

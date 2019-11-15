@@ -64,21 +64,21 @@ my $mntdir = "/mnt/backup-$name";
 my $type = $backupwk->prop('Type') || 'full';
 my $forceFull = $backupwk->prop('ForceFull') || 'enabled';
 my $VFSType = $backupwk->prop('VFSType') || 'UNKNOWN';
-my $opts = '';
-my $src = " file://$mntdir/$systemname ";
+my @opts;
+my $src = "file://$mntdir/$systemname";
 
 my $backup = new NethServer::BackupData();
 
 # disable encryption
-$opts .= " --no-encryption ";
+push(@opts,"--no-encryption");
 # set duplicity cache dir
-$opts .= " --archive-dir /var/lib/nethserver/backup/duplicity/$name ";
+push(@opts, '--archive-dir', "/var/lib/nethserver/backup/duplicity/$name");
 if ($time) {
-    $opts .= " -t $time ";
+    push(@opts, '-t', $time);
 }
 
 my $ret;
-my $cmd = CMD." restore $opts ";
+my @cmd = (CMD, 'restore', @opts);
 
 if ( -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
    system("/etc/e-smith/events/actions/mount-$VFSType fake-event $name");
@@ -86,24 +86,24 @@ if ( -x "/etc/e-smith/events/actions/mount-$VFSType" ) {
 
 if (@files) {  # restore selected files
     foreach (@files) {
-        $cmd = CMD." restore $opts ";
+        @cmd = (CMD, 'restore', @opts);
         my($filename, $directories, $suffix) = fileparse($_);
         if ($position eq "/") {
             make_path("/$directories");
-            $cmd .= " --force --file-to-restore '$_' $src /'$_'";
+            push(@cmd, '--force', '--file-to-restore', $_, $src, '/'.$_);
         } else {
             make_path("$position/$directories");
-            $cmd .= " --file-to-restore '$_' $src $position/'$_'";
+            push(@cmd, '--file-to-restore', $_, $src, $position.'/'.$_);
         }
-        $ret += system($cmd);
+        $ret += system(@cmd);
     } 
 } else { # restore all
    if ($position eq "/") {
-       $cmd .= " --force $src /";
+       push(@cmd, '--force', $src, '/');
    } else {
-       $cmd .= " $src $position/";
+       push(@cmd, $src,  $position.'/');
    }
-   $ret = system($cmd);
+   $ret = system(@cmd);
 }
 
 if ($ret != 0) {
