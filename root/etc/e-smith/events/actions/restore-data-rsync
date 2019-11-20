@@ -96,7 +96,8 @@ if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
 }
 
 if ($ret != 0) {
-   exit $ret;
+   print("Restore failed");
+   exit 1;
 }
 
 exit (0);

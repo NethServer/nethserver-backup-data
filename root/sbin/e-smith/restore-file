@@ -90,7 +90,7 @@ if (-x "/etc/e-smith/events/actions/umount-$VFSType") {
     system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
 }
 
-if ($ret > 0) {
+if ($ret != 0) {
     exit 1;
 } else {
     exit 0;
