@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.7.0
+Version: 1.7.1
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -60,6 +60,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Thu Dec 05 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.1-1
+- Restore of a whole directory - Bug Nethserver/dev#5975
+
 * Thu Nov 21 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.0-1
 - Rsync over ssh restore failure if port not 22 - Bug NethServer/dev#5908
 - Restore filenames with special characters - Bug NethServer/dev#5913
