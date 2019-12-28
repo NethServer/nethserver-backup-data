@@ -66,6 +66,18 @@ my $status;
 my %du;
 my $timeout = 0;
 my $conf = esmith::ConfigDB->open || die("Could not open config db\n");
+
+my $hotsync = $conf->get('hotsync') || 0;
+
+if ($hotsync != 0) {
+    my $hsRole = $hotsync->prop('role')  || "";
+    my $hsStatus = $hotsync->prop('status')  || "disabled";
+
+    if ($hsRole eq "slave" && $hsStatus eq "enabled") {
+      error('Backup-data is not allowed on slave host. Please disable it.');
+    }
+}
+
 my $backup = $db->get($name) || die("No backup '$name' found");
 my $program = $backup->prop('type') || 'duplicity';
 
