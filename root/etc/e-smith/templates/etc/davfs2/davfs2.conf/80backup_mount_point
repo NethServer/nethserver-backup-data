@@ -9,6 +9,7 @@
         my $vfstype = $_->prop('VFSType') || next;
         if ($vfstype eq 'webdav') {
             $OUT .= "[/mnt/backup-".$_->key."]\n";
+            $OUT .= "delay_upload\t0\n";
             $OUT .= "ask_auth\t0\n\n";
         }
     }
