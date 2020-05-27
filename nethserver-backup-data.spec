@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.7.1
+Version: 1.7.2
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -60,6 +60,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Wed May 27 2020 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.2-1
+-  davfs: immediately upload backup files (#57)
+
 * Thu Dec 05 2019 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.1-1
 - Restore of a whole directory - Bug Nethserver/dev#5975
 
