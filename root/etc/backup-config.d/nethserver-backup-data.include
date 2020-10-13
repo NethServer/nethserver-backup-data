@@ -1,2 +1,4 @@
 /etc/backup-data.d/custom.include
 /etc/backup-data.d/custom.exclude
+/var/lib/nethserver/backup/backup.key
+/var/lib/nethserver/backup/backup.key.pub
