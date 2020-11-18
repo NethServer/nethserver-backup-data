@@ -3,7 +3,7 @@
 #
 {
     use esmith::ConfigDB;
-    my $db = esmith::ConfigDB->open_ro('backups');
+    my $db = esmith::ConfigDB->open_ro('backups') || return "";
     foreach my $backup ($db->get_all()) {
         my $status = $backup->prop('status') || 'disabled';
         my $vfs = $backup->prop('VFSType') || next;
