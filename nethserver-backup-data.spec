@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.7.3
+Version: 1.7.4
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -60,6 +60,10 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Wed Nov 18 2020 Davide Principi <davide.principi@nethesis.it> - 1.7.4-1
+- Disaster recovery restore from SFTP failure - Bug NethServer/dev#6304
+- Fix failed ns6 upgrade event (NethServer/nethserver-backup-data#60)
+
 * Wed Oct 14 2020 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.3-1
 - Disaster recovery restore from SFTP failure - Bug NethServer/dev#6304
 
