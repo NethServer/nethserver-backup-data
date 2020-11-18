@@ -58,11 +58,4 @@ event_actions($event,
    'cleanup-data-duplicity' => '70',
 );
 
-#--------------------------------------------------
-# actions for post-restore-config event
-#--------------------------------------------------
-
-$event = "post-restore-config";
-templates2events("/etc/ssh/ssh_config",  $event);
-
 exit;
