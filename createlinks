@@ -32,7 +32,7 @@ templates2events("/etc/cron.d/backup-data",  $event);
 templates2events("/etc/davfs2/davfs2.conf",  $event);
 templates2events("/etc/davfs2/secrets",  $event);
 templates2events("/etc/backup-data.d/nethserver-backup-data.include",  $event);
-
+templates2events("/etc/ssh/ssh_config",  $event);
 
 #--------------------------------------------------
 # actions for nethserver-backup-data-save event
@@ -57,12 +57,5 @@ $event = "post-backup-data";
 event_actions($event, 
    'cleanup-data-duplicity' => '70',
 );
-
-#--------------------------------------------------
-# actions for post-restore-config event
-#--------------------------------------------------
-
-$event = "post-restore-config";
-templates2events("/etc/ssh/ssh_config",  $event);
 
 exit;
