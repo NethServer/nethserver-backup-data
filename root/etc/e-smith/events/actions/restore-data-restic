@@ -88,8 +88,13 @@ if (@files) {  # restore selected files
     $ret = system(@cmd);
 } else {
     # use tar to restore files with non-numeric uid/gid
-    my @cmd = (CMD, @opts, 'dump', $time, '/', "| tar -xvf - -C $position");
-    $ret = system(join(" ", @cmd));
+    open(my $rh, '-|', CMD, @opts, 'dump', $time, '/');
+    if(!fork()) {
+        open(STDIN, '<&', $rh);
+        exec('/usr/bin/tar', '-xvf', '-', '-C', $position);
+    }
+    close($rh);
+    $ret = $?;
 }
 
 if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
