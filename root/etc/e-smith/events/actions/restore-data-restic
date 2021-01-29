@@ -78,15 +78,19 @@ if ($restic_repository eq '') {
 
 push(@opts, '--repo', $restic_repository);
 
-my @cmd = (CMD, @opts, 'restore', $time, '--target', $position);
+my $ret;
 
 if (@files) {  # restore selected files
+    my @cmd = (CMD, @opts, 'restore', $time, '--target', $position);
     foreach (@files) {
         push(@cmd, '--include', $_);
     } 
+    $ret = system(@cmd);
+} else {
+    # use tar to restore files with non-numeric uid/gid
+    my @cmd = (CMD, @opts, 'dump', $time, '/', "| tar -xvf - -C $position");
+    $ret = system(join(" ", @cmd));
 }
-
-my $ret = system(@cmd);
 
 if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
