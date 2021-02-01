@@ -28,6 +28,7 @@ use NethServer::Restic;
 use File::Path  qw(make_path);
 use File::Basename;
 use Getopt::Std;
+use File::Path qw(make_path);
 
 sub print_help
 {
@@ -78,15 +79,27 @@ if ($restic_repository eq '') {
 
 push(@opts, '--repo', $restic_repository);
 
-my @cmd = (CMD, @opts, 'restore', $time, '--target', $position);
+my $ret;
 
 if (@files) {  # restore selected files
+    my @cmd = (CMD, @opts, 'restore', $time, '--target', $position);
     foreach (@files) {
         push(@cmd, '--include', $_);
     } 
+    $ret = system(@cmd);
+} else {
+    if (! -d $position) {
+        make_path($position);
+    }
+    # use tar to restore files with non-numeric uid/gid
+    open(my $rh, '-|', CMD, @opts, 'dump', $time, '/');
+    if(!fork()) {
+        open(STDIN, '<&', $rh);
+        exec('/usr/bin/tar', '-xvf', '-', '-C', $position);
+    }
+    close($rh);
+    $ret = $?;
 }
-
-my $ret = system(@cmd);
 
 if ( -x "/etc/e-smith/events/actions/umount-$VFSType" ) {
    system("/etc/e-smith/events/actions/umount-$VFSType fake-event $name");
