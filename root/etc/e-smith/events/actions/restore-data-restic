@@ -28,6 +28,7 @@ use NethServer::Restic;
 use File::Path  qw(make_path);
 use File::Basename;
 use Getopt::Std;
+use File::Path qw(make_path);
 
 sub print_help
 {
@@ -87,6 +88,9 @@ if (@files) {  # restore selected files
     } 
     $ret = system(@cmd);
 } else {
+    if (! -d $position) {
+        make_path($position);
+    }
     # use tar to restore files with non-numeric uid/gid
     open(my $rh, '-|', CMD, @opts, 'dump', $time, '/');
     if(!fork()) {
