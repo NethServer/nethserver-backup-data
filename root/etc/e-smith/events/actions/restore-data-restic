@@ -92,7 +92,7 @@ if (@files) {  # restore selected files
         make_path($position);
     }
     # use tar to restore files with non-numeric uid/gid
-    open(my $rh, '-|', CMD, @opts, '--json', 'dump', $time, '/');
+    open(my $rh, '-|', CMD, @opts, '--quiet', 'dump', $time, '/');
     if(!fork()) {
         open(STDIN, '<&', $rh);
         exec('/usr/bin/tar', '-xvf', '-', '-C', $position);
@@ -111,4 +111,3 @@ if ($ret != 0) {
 }
 
 exit (0);
-
