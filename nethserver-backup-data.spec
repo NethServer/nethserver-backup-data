@@ -2,7 +2,7 @@
 
 Summary: NethServer backup data and config files
 Name: nethserver-backup-data
-Version: 1.7.5
+Version: 1.7.6
 Release: 1%{?dist}
 License: GPL
 Source: %{name}-%{version}.tar.gz
@@ -60,6 +60,9 @@ echo %{rsync_release} > RESTIC-RELEASE
 
 
 %changelog
+* Mon Mar 15 2021 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.6-1
+- restic disaster recovery failure on first run - Bug NethServer/dev#6456
+
 * Thu Feb 04 2021 Giacomo Sanchietti <giacomo.sanchietti@nethesis.it> - 1.7.5-1
 - restic doesn't preserve file owner on disaster recovery - Bug NethServer/dev#6408
 
