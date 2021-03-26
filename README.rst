@@ -207,15 +207,6 @@ To restore a file or directory, use: ::
 
   restore-file -b <name> <position> <path>
 
-
-Restore from graphic interface
-------------------------------
-
-**NOTE**: this apply only to special backup named ``backup-data``
-
-After the selection of the paths to restore, the main command called is ``/usr/libexec/nethserver/nethserver-restore-data-help`` that
-reads the list of paths to restore and creates a executable command to restore the directories. If the second option of restore was selected (Restored file without overwrite the existing files), after the restore in a temp directory, the script moves the restored directories in the correct paths.
-
 List backup contents
 ====================
 
