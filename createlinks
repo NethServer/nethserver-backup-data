@@ -58,4 +58,14 @@ event_actions($event,
    'cleanup-data-duplicity' => '70',
 );
 
+
+#--------------------------------------------------
+# actions for post-restore-data event
+#--------------------------------------------------
+
+$event = "post-restore-data";
+event_actions($event, 
+   'fix-rsync-permissions' => '10',
+);
+
 exit;
