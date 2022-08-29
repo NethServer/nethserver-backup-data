@@ -36,8 +36,14 @@ if [[ -d "/var/lib/asterisk/" && $(stat -c %U:%G "/var/lib/asterisk/") != "aster
   /bin/chown -R asterisk:asterisk /var/lib/asterisk/moh
   /bin/chown -R asterisk:asterisk /var/lib/asterisk/sounds
   /bin/chown -R asterisk:asterisk /var/spool/asterisk
+fi
+
+if [[ -d "/var/lib/nethserver/nethcti/" ]]; then
   /bin/chown -R asterisk:asterisk /var/lib/nethserver/nethcti/templates/customer_card
   /bin/chown -R asterisk:asterisk /var/lib/nethserver/nethcti/static
+fi
+
+if [[ -d "/var/lib/nethserver/nethvoice/phonebook/uploads/" ]]; then
   /bin/chgrp asterisk /var/lib/nethserver/nethvoice/phonebook/uploads
   /bin/chown -R asterisk:asterisk /var/lib/nethserver/nethvoice/phonebook/uploads/*
 fi
@@ -46,6 +52,10 @@ if [[ -d "/var/lib/nethserver/vmail/" && $(stat -c %U:%G "/var/lib/nethserver/vm
   /bin/chown -R vmail:vmail /var/lib/nethserver/vmail
   /bin/chgrp vmail /var/lib/nethserver/sieve-scripts
   /bin/chown vmail:vmail /var/lib/nethserver/sieve-scripts/*.svbin
+fi
+
+if [[ -d "/var/lib/nethserver/imapsync/" ]]; then
+  /bin/chgrp -R vmail /var/lib/nethserver/imapsync
 fi
 
 if [[ -d "/var/lib/rspamd/" ]]; then
@@ -63,11 +73,8 @@ if [[ -d "/var/lib/nethserver/webtop/" ]]; then
   /bin/chown -R postgres:postgres /var/lib/nethserver/webtop/backup
 fi
 
-if [[ -d "/opt/mattermost/" ]]; then
-  /bin/chown -R mattermost:mattermost /opt/mattermost
-fi
-
 if [[ -d "/var/lib/nethserver/mattermost/" ]]; then
+  /bin/chown -R mattermost:mattermost /opt/mattermost
   /bin/chown -R postgres:postgres /var/lib/nethserver/mattermost/backup
   /bin/chown -R mattermost:mattermost /var/lib/nethserver/mattermost/data
 fi
@@ -97,6 +104,10 @@ if [ "$(/sbin/e-smith/config getprop backup-data IncludeLogs)" == enabled ]; the
   
   if [[ -f "/var/log/freshclam.log" ]]; then
     /bin/chown -R root:clamupdate /var/log/freshclam.log
+  fi
+  
+  if [[ -d "/var/log/imapsync/" ]]; then
+    /bin/chown -R vmail:vmail /var/log/imapsync
   fi
   
   if [[ -d "/var/log/pbx/" ]]; then
